@@ -113,7 +113,7 @@ function App() {
               <Award size={18} className="group-hover:rotate-12 transition-transform" />
             </div>
             <span className="font-mono text-sm font-black tracking-widest text-white">
-              CERTI<span className="text-cyan-400">VAULT</span>
+              CERTIFI<span className="text-cyan-400">CATION</span>
             </span>
           </motion.div>
 

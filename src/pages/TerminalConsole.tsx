@@ -91,7 +91,7 @@ export const TerminalConsole: React.FC = () => {
     if (!rawCommand) return;
 
     const newHistory = [...history];
-    newHistory.push({ text: `guest@certivault:~# ${rawCommand}`, type: 'input' });
+    newHistory.push({ text: `guest@certification:~# ${rawCommand}`, type: 'input' });
 
     const output = (text: string, type: HistoryEntry['type'] = 'output') => {
       newHistory.push({ text, type });
@@ -198,7 +198,7 @@ export const TerminalConsole: React.FC = () => {
           CYBER <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">TERMINAL</span>
         </h1>
         <p className="text-xs text-slate-400 max-w-sm mt-1">
-          Interact directly with the CertiVault filesystem using raw CLI command queries.
+          Interact directly with the Certification filesystem using raw CLI command queries.
         </p>
       </div>
 
@@ -233,7 +233,7 @@ export const TerminalConsole: React.FC = () => {
 
         {/* Input Prompter panel */}
         <div className="flex items-center gap-1.5 border-t border-white/5 pt-3 relative z-10">
-          <span className="text-cyan-400 font-bold">guest@certivault:~#</span>
+          <span className="text-cyan-400 font-bold">guest@certification:~#</span>
           <input
             ref={inputRef}
             type="text"
