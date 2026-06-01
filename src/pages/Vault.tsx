@@ -314,7 +314,7 @@ export const Vault: React.FC<VaultProps> = ({ initialCategory, onSelectAchieveme
 
                         {/* Action status */}
                         <span className="text-[9px] font-mono text-cyan-400 group-hover:text-cyan-300 flex items-center gap-1 group-hover:underline transition-all">
-                          <FileText size={10} /> SCAN_DECRYPT
+                          <FileText size={10} /> PROOF
                         </span>
                       </div>
                     </motion.div>
