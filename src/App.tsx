@@ -7,6 +7,7 @@ import { TrophyRoom } from './pages/TrophyRoom';
 import { BadgeWall } from './pages/BadgeWall';
 import { Timeline } from './pages/Timeline';
 import { Analytics } from './pages/Analytics';
+import { CommandCenter } from './pages/CommandCenter';
 import { CertificateModal } from './components/CertificateModal';
 import { CursorSparks } from './components/CursorSparks';
 import type { Achievement } from './data/achievementsData';
@@ -89,6 +90,7 @@ function App() {
     { id: 'badges', label: 'Badge Wall', icon: '🔰' },
     { id: 'timeline', label: 'Timeline', icon: '⏳' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
+    { id: 'command-center', label: 'Command Center', icon: '👨‍🚀' },
   ];
 
   return (
@@ -232,6 +234,7 @@ function App() {
             {activeSection === 'badges' && <BadgeWall />}
             {activeSection === 'timeline' && <Timeline />}
             {activeSection === 'analytics' && <Analytics />}
+            {activeSection === 'command-center' && <CommandCenter />}
           </motion.div>
         </AnimatePresence>
       </main>

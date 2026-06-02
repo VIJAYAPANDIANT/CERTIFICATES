@@ -28,6 +28,7 @@ export const Analytics: React.FC = () => {
       Internships: 0,
       Hackathons: 0,
       Workshops: 0,
+      Competitions: 0,
       Badges: 0,
       total: achievementsData.length,
     };
@@ -48,6 +49,7 @@ export const Analytics: React.FC = () => {
       { name: 'Internships', value: stats.Internships, color: '#10b981' },
       { name: 'Hackathons', value: stats.Hackathons, color: '#f97316' },
       { name: 'Workshops', value: stats.Workshops, color: '#06b6d4' },
+      { name: 'Competitions', value: stats.Competitions, color: '#ef4444' },
       { name: 'Badges', value: stats.Badges, color: '#a855f7' },
     ];
   }, [stats]);
@@ -123,12 +125,13 @@ export const Analytics: React.FC = () => {
       </div>
 
       {/* Numeric KPI cards grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
         {[
           { label: 'COURSES', count: stats.Courses, color: 'text-blue-400', icon: '📚' },
           { label: 'INTERNSHIPS', count: stats.Internships, color: 'text-emerald-400', icon: '💼' },
           { label: 'HACKATHONS', count: stats.Hackathons, color: 'text-orange-400', icon: '🏆' },
           { label: 'WORKSHOPS', count: stats.Workshops, color: 'text-cyan-400', icon: '🎓' },
+          { label: 'COMPETITIONS', count: stats.Competitions, color: 'text-red-400', icon: '⚔' },
           { label: 'BADGES', count: stats.Badges, color: 'text-purple-400', icon: '🔰' },
           { label: 'TOTAL CORE', count: stats.total, color: 'text-white', icon: '⚡', isTotal: true },
         ].map((kpi, idx) => (

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { playHover, playClick } from '../utils/sounds';
 import { achievementsData } from '../data/achievementsData';
-import { BookOpen, Trophy, Award, Briefcase, Sparkles } from 'lucide-react';
+import { BookOpen, Trophy, Award, Briefcase, Flame, Sparkles } from 'lucide-react';
 
 const profiles = [
   {
@@ -98,7 +98,7 @@ const profiles = [
 ];
 
 interface CategoryNode {
-  name: 'Internships' | 'Hackathons' | 'Courses' | 'Workshops' | 'Badges';
+  name: 'Internships' | 'Hackathons' | 'Courses' | 'Workshops' | 'Competitions' | 'Badges';
   icon: React.ComponentType<any>;
   color: string;
   glowColor: string;
@@ -160,6 +160,16 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
       description: 'Bootcamps & professional training',
       stat: `${getStats('Workshops')} Workshops`,
       angle: Math.PI,
+      radius: 200,
+    },
+    {
+      name: 'Competitions',
+      icon: Flame,
+      color: '#ef4444', // Red
+      glowColor: 'rgba(239, 68, 68, 0.4)',
+      description: 'Competitive coding & challenges',
+      stat: `${getStats('Competitions')} Placements`,
+      angle: (4 * Math.PI) / 3,
       radius: 200,
     },
     {
@@ -228,176 +238,65 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Elliptical orbit calculation per Keplerian scale for 5 planets
+      // Elliptical orbit calculation (gives 3D depth perspective)
       const radiusX = Math.min(width * 0.32, 280);
       const radiusY = Math.min(height * 0.22, 160);
 
-      const orbitScale = 0.45 + index * 0.23; // Orbit sizes: 0.45, 0.68, 0.91, 1.14, 1.37
-      const rx = radiusX * orbitScale;
-      const ry = radiusY * orbitScale;
-
-      const x = centerX + Math.cos(currentAngle) * rx;
-      const y = centerY + Math.sin(currentAngle) * ry;
+      const x = centerX + Math.cos(currentAngle) * radiusX;
+      const y = centerY + Math.sin(currentAngle) * radiusY;
 
       // Depth scale (smaller at back, larger at front)
       const zScale = (Math.sin(currentAngle) + 2) / 3; // 0.33 to 1.0
-      
-      const baseSizes = [30, 36, 44, 34, 38]; // Different planet scales: Internships, Hackathons, Courses, Workshops, Badges
-      const nodeSize = baseSizes[index] * zScale;
+      const nodeSize = 42 * zScale;
       const isHovered = index === activeHoverIdx;
 
-      // Draw planet spheres with gorgeous radial gradients
-      const grad = ctx.createRadialGradient(
-        x - nodeSize * 0.3,
-        y - nodeSize * 0.3,
-        2 * zScale,
-        x,
-        y,
-        nodeSize
-      );
+      // Draw orbit path segment
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+      ctx.stroke();
 
-      // Colors for the planets
-      if (node.name === 'Internships') {
-        grad.addColorStop(0, '#34d399'); // Emerald-400
-        grad.addColorStop(0.4, '#10b981'); // Emerald-500
-        grad.addColorStop(1, '#064e3b'); // Emerald-900
-      } else if (node.name === 'Hackathons') {
-        grad.addColorStop(0, '#fb923c'); // Orange-400
-        grad.addColorStop(0.4, '#f97316'); // Orange-500
-        grad.addColorStop(1, '#7c2d12'); // Orange-900
-      } else if (node.name === 'Courses') {
-        grad.addColorStop(0, '#60a5fa'); // Blue-400
-        grad.addColorStop(0.4, '#3b82f6'); // Blue-500
-        grad.addColorStop(1, '#1e3a8a'); // Blue-950
-      } else if (node.name === 'Workshops') {
-        grad.addColorStop(0, '#22d3ee'); // Cyan-400
-        grad.addColorStop(0.4, '#06b6d4'); // Cyan-500
-        grad.addColorStop(1, '#083344'); // Cyan-950
-      } else if (node.name === 'Badges') {
-        grad.addColorStop(0, '#c084fc'); // Purple-400
-        grad.addColorStop(0.4, '#a855f7'); // Purple-500
-        grad.addColorStop(1, '#581c87'); // Purple-950
-      }
-
-      ctx.save();
-      ctx.shadowBlur = isHovered ? 25 : 12 * zScale;
+      // Node shadow/glow
+      ctx.shadowBlur = isHovered ? 25 : 10 * zScale;
       ctx.shadowColor = node.color;
-      ctx.fillStyle = grad;
+
+      // Draw glowing background ring
+      ctx.fillStyle = isHovered ? node.color : 'rgba(15, 12, 35, 0.75)';
+      ctx.strokeStyle = node.color;
+      ctx.lineWidth = isHovered ? 3 : 1.5;
+
       ctx.beginPath();
       ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
       ctx.shadowBlur = 0; // reset
 
-      // Surface detailing clipped inside the planet sphere
-      ctx.beginPath();
-      ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
-      ctx.clip();
-
-      if (node.name === 'Hackathons') {
-        // Jupiter-like bands
-        ctx.fillStyle = 'rgba(124, 45, 18, 0.35)'; // dark orange
-        ctx.fillRect(x - nodeSize, y - nodeSize * 0.4, nodeSize * 2, nodeSize * 0.18);
-        ctx.fillRect(x - nodeSize, y + nodeSize * 0.1, nodeSize * 2, nodeSize * 0.12);
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; // light bands
-        ctx.fillRect(x - nodeSize, y - nodeSize * 0.15, nodeSize * 2, nodeSize * 0.08);
-        ctx.fillRect(x - nodeSize, y + nodeSize * 0.35, nodeSize * 2, nodeSize * 0.08);
-      } else if (node.name === 'Internships') {
-        // Continent shapes
-        ctx.fillStyle = 'rgba(6, 78, 59, 0.4)';
-        ctx.beginPath();
-        ctx.arc(x - nodeSize * 0.3, y + nodeSize * 0.2, nodeSize * 0.45, 0, Math.PI * 2);
-        ctx.arc(x + nodeSize * 0.4, y - nodeSize * 0.3, nodeSize * 0.35, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (node.name === 'Workshops') {
-        // Ice cap storms / bright spots
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.beginPath();
-        ctx.arc(x + nodeSize * 0.2, y + nodeSize * 0.1, nodeSize * 0.25, 0, Math.PI * 2);
-        ctx.arc(x - nodeSize * 0.4, y - nodeSize * 0.2, nodeSize * 0.18, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (node.name === 'Badges') {
-        // Glowing star particles
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.beginPath();
-        ctx.arc(x + nodeSize * 0.15, y - nodeSize * 0.3, 2 * zScale, 0, Math.PI * 2);
-        ctx.arc(x - nodeSize * 0.25, y + nodeSize * 0.2, 3 * zScale, 0, Math.PI * 2);
-        ctx.arc(x + nodeSize * 0.3, y + nodeSize * 0.25, 1.5 * zScale, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (node.name === 'Courses') {
-        // Saturn bands
-        ctx.fillStyle = 'rgba(30, 58, 138, 0.35)'; // dark blue
-        ctx.fillRect(x - nodeSize, y - nodeSize * 0.25, nodeSize * 2, nodeSize * 0.1);
-        ctx.fillRect(x - nodeSize, y + nodeSize * 0.15, nodeSize * 2, nodeSize * 0.1);
-      }
-
-      ctx.restore();
-
-      // Draw planetary rings for Courses (Saturn)
-      if (node.name === 'Courses') {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(15 * Math.PI / 180); // tilt rings by 15 deg
-        
-        ctx.strokeStyle = 'rgba(96, 165, 250, 0.55)';
-        ctx.lineWidth = 4 * zScale;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, nodeSize * 1.6, nodeSize * 0.35, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.lineWidth = 1 * zScale;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, nodeSize * 1.35, nodeSize * 0.28, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.restore();
-      }
-
-      // Draw glowing outline for the sphere
-      ctx.strokeStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = isHovered ? 2.5 : 1;
-      ctx.beginPath();
-      ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Draw sleek glass capsule badge for the planet label to make it 100% readable
-      const labelText = node.name.toUpperCase();
-      ctx.font = `${isHovered ? 'bold' : 'normal'} 11px monospace`;
-      const textWidth = ctx.measureText(labelText).width;
-      const padX = 8;
-      const padY = 4;
-      const rectW = textWidth + padX * 2;
-      const rectH = 11 + padY * 2;
-      const rectX = x - rectW / 2;
-      const rectY = y + nodeSize + 12;
-
-      ctx.save();
-      // Glass capsule backing
-      ctx.fillStyle = isHovered ? 'rgba(6, 182, 212, 0.25)' : 'rgba(15, 12, 35, 0.75)';
-      ctx.strokeStyle = isHovered ? node.color : 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 1;
-      
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(rectX, rectY, rectW, rectH, 5);
-      } else {
-        ctx.rect(rectX, rectY, rectW, rectH);
-      }
-      ctx.fill();
-      ctx.stroke();
-
-      // Write text inside capsule
-      ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(226, 232, 240, 0.9)';
+      // Draw icon symbol manually inside node
+      ctx.fillStyle = isHovered ? '#030014' : node.color;
+      ctx.font = `bold ${Math.floor(18 * zScale)}px Space Grotesk`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(labelText, x, rectY + rectH / 2 + 1); // small offset for baseline alignment
 
-      // Sub-label for stats below the capsule
-      ctx.fillStyle = isHovered ? node.color : 'rgba(148, 163, 184, 0.75)';
-      ctx.font = '10px Courier New';
-      ctx.fillText(node.stat, x, rectY + rectH + 11);
-      ctx.restore();
+      // Custom icon mapping
+      let emoji = '💼';
+      if (node.name === 'Hackathons') emoji = '🏆';
+      else if (node.name === 'Courses') emoji = '📚';
+      else if (node.name === 'Workshops') emoji = '🎓';
+      else if (node.name === 'Competitions') emoji = '⚔';
+      else if (node.name === 'Badges') emoji = '🔰';
+
+      ctx.fillText(emoji, x, y);
+
+      // Floating title labels below node
+      ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(226, 232, 240, 0.8)';
+      ctx.font = `${isHovered ? 'bold' : 'normal'} ${Math.floor(13 * zScale + (isHovered ? 2 : 0))}px Space Grotesk`;
+      ctx.fillText(node.name, x, y + nodeSize + 18);
+
+      // Sub-label for stats
+      ctx.fillStyle = isHovered ? node.color : 'rgba(148, 163, 184, 0.6)';
+      ctx.font = `${Math.floor(11 * zScale)}px Courier New`;
+      ctx.fillText(node.stat, x, y + nodeSize + 32);
 
       return { x, y, size: nodeSize };
     };
@@ -414,9 +313,20 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Render orbiting space dust particles
+      // Draw central galaxy core
+      const coreGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 90);
+      coreGlow.addColorStop(0, 'rgba(139, 92, 246, 0.45)');
+      coreGlow.addColorStop(0.3, 'rgba(6, 182, 212, 0.2)');
+      coreGlow.addColorStop(1, 'rgba(3, 0, 20, 0)');
+      ctx.fillStyle = coreGlow;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 90, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Render orbiting space particles
       orbitalParticles.forEach((p) => {
         p.angle += p.speed;
+        // Elliptical coordinate computation
         const rx = p.radius * Math.min(width * 0.0015, 1.2);
         const ry = p.radius * 0.6 * Math.min(height * 0.0015, 1.2);
         const px = centerX + Math.cos(p.angle + angleOffset * 0.3) * rx;
@@ -430,82 +340,21 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
       });
       ctx.globalAlpha = 1.0;
 
-      // Draw all Keplerian orbit rings first
-      const radiusX = Math.min(width * 0.32, 280);
-      const radiusY = Math.min(height * 0.22, 160);
-      nodes.forEach((_, idx) => {
-        const orbitScale = 0.45 + idx * 0.23;
-        const rx = radiusX * orbitScale;
-        const ry = radiusY * orbitScale;
-        
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)'; // subtle cyan orbit ring
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(centerX, centerY, rx, ry, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-
-      // Prepare nodes with their current angles and depth indicators
-      const speedFactors = [1.5, 1.2, 0.95, 0.75, 0.55];
-      const nodesWithAngle = nodes.map((node, idx) => {
-        const currentAngle = node.angle + angleOffset * speedFactors[idx];
-        const isBehind = Math.sin(currentAngle) < 0;
-        return { node, currentAngle, idx, isBehind };
-      });
-
-      // Record rendered positions for interaction checks
-      const renderedPositions: { x: number; y: number; size: number; originalIdx: number }[] = [];
-
-      // 1. Draw planets behind the Sun first
-      nodesWithAngle
-        .filter((p) => p.isBehind)
-        .forEach((p) => {
-          const pos = drawNode(p.node, p.currentAngle, p.idx);
-          renderedPositions.push({ ...pos, originalIdx: p.idx });
-        });
-
-      // 2. Draw central star Sun core (drawn on top of background planets)
-      const sunCoreGlow = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 42);
-      sunCoreGlow.addColorStop(0, '#ffffff');
-      sunCoreGlow.addColorStop(0.2, '#fef08a'); // yellow-200
-      sunCoreGlow.addColorStop(0.6, '#f97316'); // orange-500
-      sunCoreGlow.addColorStop(1, 'rgba(124, 45, 18, 0)'); // orange-900 transparent
-      
-      ctx.shadowBlur = 35;
-      ctx.shadowColor = '#f97316';
-      ctx.fillStyle = sunCoreGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 42, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0; // reset
-
-      // Sun outer corona glow
-      const coronaGlow = ctx.createRadialGradient(centerX, centerY, 15, centerX, centerY, 110);
-      coronaGlow.addColorStop(0, 'rgba(249, 115, 22, 0.25)');
-      coronaGlow.addColorStop(0.4, 'rgba(168, 85, 247, 0.08)');
-      coronaGlow.addColorStop(1, 'rgba(3, 0, 20, 0)');
-      ctx.fillStyle = coronaGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 110, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Core text display (in center of Sun)
+      // Core text display
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 13px Space Grotesk';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('SYSTEM CORE', centerX, centerY - 6);
-      ctx.fillStyle = '#fb923c';
+      ctx.font = 'bold 15px Space Grotesk';
+      ctx.fillText('CORE SYSTEM', centerX, centerY - 6);
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
       ctx.font = '9px monospace';
-      ctx.fillText('CLICK PLANETS', centerX, centerY + 8);
+      ctx.fillText('CLICK ORBITS TO ENTER', centerX, centerY + 10);
 
-      // 3. Draw planets in front of the Sun last (drawn on top of the Sun)
-      nodesWithAngle
-        .filter((p) => !p.isBehind)
-        .forEach((p) => {
-          const pos = drawNode(p.node, p.currentAngle, p.idx);
-          renderedPositions.push({ ...pos, originalIdx: p.idx });
-        });
+      // Render nodes and record their rendered positions
+      const renderedPositions: { x: number; y: number; size: number }[] = [];
+      nodes.forEach((node, idx) => {
+        const currentAngle = node.angle + angleOffset;
+        const pos = drawNode(node, currentAngle, idx);
+        renderedPositions.push(pos);
+      });
 
       // Handle hover interactions
       let foundHoverIdx = -1;
@@ -515,7 +364,7 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
         const dy = mousePos.y - pos.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < pos.size + 15) {
-          foundHoverIdx = pos.originalIdx;
+          foundHoverIdx = i;
           break;
         }
       }
@@ -715,7 +564,7 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
 
       {/* Categories Fast Travel Grid */}
       <div className="w-full bg-black/40 border-t border-white/5 backdrop-blur-md py-4 z-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 md:grid-cols-6 gap-3">
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (

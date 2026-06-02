@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Briefcase, Trophy, BookOpen, Award, Sparkles, ChevronRight } from 'lucide-react';
+import { Calendar, Briefcase, Trophy, BookOpen, Award, Sparkles, Flame, ChevronRight } from 'lucide-react';
 import { achievementsData } from '../data/achievementsData';
 import type { Achievement } from '../data/achievementsData';
 import { playClick, playHover } from '../utils/sounds';
@@ -42,6 +42,8 @@ export const Timeline: React.FC = () => {
         return <BookOpen size={14} className="text-blue-400" />;
       case 'Workshops':
         return <Sparkles size={14} className="text-cyan-400" />;
+      case 'Competitions':
+        return <Flame size={14} className="text-red-400" />;
       default:
         return <Award size={14} className="text-purple-400" />;
     }
@@ -57,6 +59,8 @@ export const Timeline: React.FC = () => {
         return 'border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]';
       case 'Workshops':
         return 'border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]';
+      case 'Competitions':
+        return 'border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]';
       default:
         return 'border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.1)]';
     }

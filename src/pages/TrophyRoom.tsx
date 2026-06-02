@@ -9,7 +9,7 @@ export const TrophyRoom: React.FC = () => {
   // Filter for hackathons and competitions
   const trophies = useMemo(() => {
     return achievementsData.filter(
-      (a) => a.category === 'Hackathons'
+      (a) => a.category === 'Hackathons' || a.category === 'Competitions'
     );
   }, []);
 
