@@ -737,7 +737,7 @@ export const CommandCenter: React.FC = () => {
                         className="absolute w-2 h-2 -ml-1 -mt-1 rounded-full group cursor-pointer"
                         style={{ left: `${(skill.x / 300) * 100}%`, top: `${(skill.y / 300) * 100}%` }}
                         onMouseEnter={playHover}
-                        title={`${skill.name}: ${skill.level}%`}
+                        title={skill.name}
                       >
                         {/* Glow halo */}
                         <div className="absolute -inset-2 rounded-full bg-cyan-400/20 group-hover:bg-cyan-400/50 transition-colors animate-ping duration-1000" />
@@ -746,7 +746,7 @@ export const CommandCenter: React.FC = () => {
                         
                         {/* Tooltip text bubble */}
                         <div className="hidden group-hover:flex absolute left-4 -top-3.5 bg-slate-950 border border-cyan-500/30 px-2 py-0.5 rounded text-[8px] whitespace-nowrap text-cyan-400 z-30 font-mono shadow-2xl">
-                          {skill.name} ({skill.level}%)
+                          {skill.name}
                         </div>
                       </div>
                     ))}
@@ -759,7 +759,7 @@ export const CommandCenter: React.FC = () => {
                     <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-4">
                       <h4 className="text-xs text-white font-bold uppercase tracking-wider flex items-center gap-1.5">
                         <Radar size={12} className="text-cyan-400" />
-                        INTERACTIVE VECTOR RADAR SYSTEM
+                        OPERATOR TECHNOLOGICAL COMPENDIUM
                       </h4>
                       
                       {/* Controller pause/play switch */}
@@ -767,24 +767,55 @@ export const CommandCenter: React.FC = () => {
                         onClick={() => { playClick(); setRadarRotating(!radarRotating); }}
                         className="text-[9px] border border-white/10 hover:border-cyan-500/30 bg-white/3 hover:text-cyan-400 px-2 py-0.5 rounded cursor-pointer"
                       >
-                        {radarRotating ? 'PAUSE RADAR' : 'ROTATE RADAR'}
+                        {radarRotating ? 'PAUSE SCANNER' : 'ROTATE SCANNER'}
                       </button>
                     </div>
 
-                    <p className="text-[11px] text-slate-300 leading-relaxed mb-6">
-                      An active scanning array mapping of the core technology competencies. Center nodes are mapped to relative capability values. Hover over coordinate pins to analyze level values.
+                    <p className="text-[11px] text-slate-300 leading-relaxed mb-4">
+                      An active scanning array mapping of the core technology competencies. Center nodes are mapped to relative capability vectors. Hover over coordinate pins to analyze node paths.
                     </p>
 
-                    {/* Skill Bars list */}
-                    <div className="grid grid-cols-2 gap-4 text-[10px]">
-                      {radarSkills.map((skill, idx) => (
-                        <div key={idx} className="flex flex-col gap-1">
-                          <div className="flex justify-between text-slate-300">
-                            <span className="font-bold">{skill.name}</span>
-                            <span className="text-cyan-400">{skill.level}%</span>
-                          </div>
-                          <div className="h-1 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
-                            <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${skill.level}%` }} />
+                    {/* Skill Categories list */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-2">
+                      {[
+                        {
+                          title: '🚀 Programming Languages',
+                          skills: ['Java', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'C']
+                        },
+                        {
+                          title: '🌐 Web Development & Backend',
+                          skills: ['HTML', 'CSS', 'Bootstrap', 'TailwindCSS', 'React', 'Next.js', 'Node.js', 'Express.js', 'Spring Boot']
+                        },
+                        {
+                          title: '🗄️ Database & Concepts',
+                          skills: ['MySQL', 'PostgreSQL', 'MongoDB', 'Prisma', 'DBMS']
+                        },
+                        {
+                          title: '🎨 UI / UX',
+                          skills: ['Figma', 'WordPress', 'Canva']
+                        },
+                        {
+                          title: '📊 Data Analytics [Basic]',
+                          skills: ['Python', 'Excel', 'SQL']
+                        },
+                        {
+                          title: '🛠 Tools & Technologies',
+                          skills: ['Git', 'GitHub', 'GitLab', 'VS Code', 'Eclipse', 'IntelliJ IDEA']
+                        }
+                      ].map((cat, idx) => (
+                        <div key={idx} className="flex flex-col gap-2 p-3 rounded-xl border border-white/5 bg-slate-950/45">
+                          <h5 className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider border-b border-white/5 pb-1 select-none">
+                            {cat.title}
+                          </h5>
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {cat.skills.map((skill, sIdx) => (
+                              <span 
+                                key={sIdx} 
+                                className="text-[9px] font-bold bg-white/3 border border-white/5 px-2 py-0.5 rounded text-slate-300 hover:border-cyan-500/25 hover:text-cyan-300 transition-colors"
+                              >
+                                {skill}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       ))}
