@@ -1,10 +1,16 @@
 # 🌌 Cosmic Certificate & Achievement HUD Decryption Console
 
+![VJ Achievement Universe](https://img.shields.io/badge/VJ%20Achievement-Universe-blueviolet?style=for-the-badge&logo=spacex&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel&logoColor=white)](https://vj-achievement-museum.vercel.app)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-blue?style=for-the-badge&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Gemini%20AI-3.5%20Flash-orange?style=for-the-badge&logo=google-gemini&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+
 Welcome to the **Cosmic Certificate & Achievement Decryption Console**—a highly gamified, interactive, space-themed developer portfolio and certification vault. Built to look and feel like a sci-fi telemetry HUD (Heads-Up Display), this application catalogs and decrypts internships, hackathons, courses, workshops, badges, and competitive programming milestones.
 
 Designed with rich, futuristic aesthetics, smooth gradients, immersive micro-animations, canvas particle systems, custom audio cues, and 3D hover interactive elements.
-
-🌌 **Live Decryption Terminal**: [vj-achievement-museum.vercel.app](https://vj-achievement-museum.vercel.app/)
 
 ---
 
