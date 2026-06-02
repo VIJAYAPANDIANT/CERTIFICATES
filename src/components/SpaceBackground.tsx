@@ -320,6 +320,10 @@ export const SpaceBackground: React.FC = () => {
 
     // ─── MAIN RENDER LOOP ───────────────────────────────────────────────────
     const render = () => {
+      if (width <= 0 || height <= 0) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
       frame++;
       const mouse = mouseRef.current;
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
@@ -674,7 +678,15 @@ export const SpaceBackground: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -10,
+        pointerEvents: 'none',
+      }}
     />
   );
 };

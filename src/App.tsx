@@ -92,7 +92,7 @@ function App() {
   ];
 
   return (
-    <div className="relative min-h-screen text-slate-100 font-sans pb-12 selection:bg-cyan-500/30 selection:text-white">
+    <div className="relative z-0 min-h-screen text-slate-100 font-sans pb-12 selection:bg-cyan-500/30 selection:text-white">
       {/* 1. Futuristic Space Background Canvas */}
       <SpaceBackground />
       <CursorSparks />
