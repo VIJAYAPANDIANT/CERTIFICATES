@@ -7,6 +7,8 @@ interface Star {
   baseAlpha: number; alpha: number;
   twinkleSpeed: number; color: string;
   parallax: number;
+  isSuperGiant?: boolean;
+  flareAngle?: number;
 }
 
 interface ShootingStar {
@@ -24,6 +26,7 @@ interface Asteroid {
   rotSpeed: number; alpha: number;
   vertices: { x: number; y: number }[];
   color: string; glowColor: string;
+  parallax: number;
 }
 
 interface FireParticle {
@@ -40,6 +43,7 @@ interface Comet {
   radius: number;
   particles: FireParticle[];
   color: string;
+  type: 'fire' | 'plasma';
   life: number; maxLife: number;
 }
 
@@ -59,6 +63,16 @@ interface Rocket {
   color: string;
 }
 
+interface DustParticle {
+  x: number; y: number;
+  vx: number; vy: number;
+  size: number;
+  color: string;
+  alpha: number;
+  baseAlpha: number;
+  parallax: number;
+}
+
 // ─── Helper Functions ──────────────────────────────────────────────────────────
 
 function makeAsteroidVertices(radius: number, count = 8): { x: number; y: number }[] {
@@ -74,52 +88,60 @@ function makeAsteroidVertices(radius: number, count = 8): { x: number; y: number
 function makeComet(width: number, height: number): Comet {
   // Comets spawn from edges going inward
   const side = Math.floor(Math.random() * 2); // top or left
-  const speed = 1.5 + Math.random() * 3;
+  const speed = 1.8 + Math.random() * 3.5;
   const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.6;
   let x = 0, y = 0;
   if (side === 0) { x = Math.random() * width; y = -20; }
   else { x = -20; y = Math.random() * height * 0.6; }
+
+  const isPlasma = Math.random() > 0.5;
+  const color = isPlasma 
+    ? (Math.random() > 0.5 ? '#06b6d4' : '#d946ef') 
+    : (Math.random() > 0.5 ? '#f97316' : '#fbbf24');
+
   return {
     x, y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    radius: 5 + Math.random() * 7,
+    radius: 4 + Math.random() * 7,
     particles: [],
-    color: Math.random() > 0.5 ? '#f97316' : '#fbbf24',
+    color,
+    type: isPlasma ? 'plasma' : 'fire',
     life: 0,
-    maxLife: 200 + Math.random() * 200,
+    maxLife: 220 + Math.random() * 220,
   };
 }
 
 function makeRocket(width: number, height: number): Rocket {
   const fromLeft = Math.random() > 0.3;
   const y = 60 + Math.random() * height * 0.7;
-  const speed = 1.2 + Math.random() * 1.8;
+  const speed = 1.5 + Math.random() * 2.2;
+  const colors = ['#06b6d4', '#8b5cf6', '#d946ef', '#eab308'];
   return {
     x: fromLeft ? -60 : width + 60,
     y,
     vx: fromLeft ? speed : -speed,
-    vy: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.3,
     angle: fromLeft ? 0 : Math.PI,
-    scale: 0.6 + Math.random() * 0.8,
+    scale: 0.55 + Math.random() * 0.75,
     exhaust: [],
     life: 0,
     maxLife: 350 + Math.random() * 200,
-    color: Math.random() > 0.5 ? '#06b6d4' : '#8b5cf6',
+    color: colors[Math.floor(Math.random() * colors.length)],
   };
 }
 
 function makeShootingStar(width: number, height: number): ShootingStar {
   const x = Math.random() * width * 1.2;
   const y = Math.random() * height * 0.5;
-  const speed = 10 + Math.random() * 16;
+  const speed = 11 + Math.random() * 16;
   const angle = Math.PI * 0.12 + (Math.random() - 0.5) * 0.2;
   const colors = ['#ffffff', '#06b6d4', '#d946ef', '#fbbf24'];
   return {
     x, y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    length: 60 + Math.random() * 120,
+    length: 70 + Math.random() * 130,
     alpha: 1,
     life: 0,
     maxLife: 40 + Math.random() * 30,
@@ -146,39 +168,67 @@ export const SpaceBackground: React.FC = () => {
 
     // ── Spawn Stars ──────────────────────────────────────────────────────────
     const STAR_COLORS = ['#e2e8f0', '#06b6d4', '#8b5cf6', '#d946ef', '#f0abfc', '#7dd3fc'];
-    const starCount = Math.min(Math.floor((width * height) / 5000), 300);
+    const starCount = Math.min(Math.floor((width * height) / 4500), 320);
     const stars: Star[] = [];
     for (let i = 0; i < starCount; i++) {
       const baseAlpha = Math.random() * 0.7 + 0.1;
+      const isSuperGiant = Math.random() > 0.95; // 5% chance
       stars.push({
         x: Math.random() * width, y: Math.random() * height,
-        size: Math.random() * 2 + 0.3,
+        size: isSuperGiant ? Math.random() * 2.5 + 2.2 : Math.random() * 1.8 + 0.3,
         baseAlpha, alpha: baseAlpha,
         twinkleSpeed: Math.random() * 0.04 + 0.005,
         color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
         parallax: Math.random() * 0.06 + 0.005,
+        isSuperGiant,
+        flareAngle: Math.random() * Math.PI,
+      });
+    }
+
+    // ── Spawn Cosmic Nebula Dust drifts ──────────────────────────────────────
+    const dustParticles: DustParticle[] = [];
+    const DUST_COLORS = [
+      'rgba(6, 182, 212, 0.07)', 
+      'rgba(139, 92, 246, 0.06)', 
+      'rgba(217, 70, 239, 0.06)'
+    ];
+    for (let i = 0; i < 25; i++) {
+      const baseAlpha = Math.random() * 0.3 + 0.15;
+      dustParticles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        size: 40 + Math.random() * 80,
+        color: DUST_COLORS[Math.floor(Math.random() * DUST_COLORS.length)],
+        alpha: baseAlpha,
+        baseAlpha,
+        parallax: Math.random() * 0.08 + 0.02,
       });
     }
 
     // ── Spawn Asteroids ──────────────────────────────────────────────────────
     const asteroids: Asteroid[] = [];
     const ASTEROID_COLORS = [
-      { c: '#4c1d95', g: 'rgba(139,92,246,0.4)' },
-      { c: '#1e3a5f', g: 'rgba(6,182,212,0.3)' },
-      { c: '#2d1a4a', g: 'rgba(217,70,239,0.3)' },
+      { c: '#4c1d95', g: 'rgba(139,92,246,0.35)' },
+      { c: '#1e3a5f', g: 'rgba(6,182,212,0.25)' },
+      { c: '#2d1a4a', g: 'rgba(217,70,239,0.25)' },
     ];
-    for (let i = 0; i < 12; i++) {
-      const r = 8 + Math.random() * 22;
+    // Increased to 16 and added depth layer mapping
+    for (let i = 0; i < 16; i++) {
+      const r = 6 + Math.random() * 20;
       const ac = ASTEROID_COLORS[Math.floor(Math.random() * ASTEROID_COLORS.length)];
+      const parallax = 0.3 + (r / 20) * 0.9;
       asteroids.push({
         x: Math.random() * width, y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
+        vx: (Math.random() - 0.5) * 0.6 * parallax,
+        vy: (Math.random() - 0.5) * 0.6 * parallax,
         radius: r, rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.015,
-        alpha: 0.6 + Math.random() * 0.4,
+        alpha: 0.45 + (r / 20) * 0.55,
         vertices: makeAsteroidVertices(r),
         color: ac.c, glowColor: ac.g,
+        parallax,
       });
     }
 
@@ -187,7 +237,7 @@ export const SpaceBackground: React.FC = () => {
     const rockets: Rocket[] = [];
     const shootingStars: ShootingStar[] = [];
 
-    // ── Resize handler ───────────────────────────────────────────────────────
+    // ── Resize & Mouse handlers ──────────────────────────────────────────────
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
@@ -317,9 +367,49 @@ export const SpaceBackground: React.FC = () => {
         ctx.beginPath();
         ctx.arc(wrappedX, wrappedY, star.size, 0, Math.PI * 2);
         ctx.fill();
+
+        // Super giant glowing stars with cross flares
+        if (star.isSuperGiant) {
+          ctx.save();
+          ctx.translate(wrappedX, wrappedY);
+          ctx.rotate(star.flareAngle || 0);
+          ctx.strokeStyle = star.color;
+          ctx.globalAlpha = star.alpha * 0.4;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(-star.size * 2.5, 0); ctx.lineTo(star.size * 2.5, 0);
+          ctx.moveTo(0, -star.size * 2.5); ctx.lineTo(0, star.size * 2.5);
+          ctx.stroke();
+          ctx.restore();
+        }
       });
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
+
+      // ── COSMIC DUST DRIFTS ───────────────────────────────────────────────
+      dustParticles.forEach((dust) => {
+        dust.x += dust.vx;
+        dust.y += dust.vy;
+
+        const dx = dust.x - mouse.x * dust.parallax * 15;
+        const dy = dust.y - mouse.y * dust.parallax * 15;
+
+        const wrappedX = ((dx + dust.size) % (width + dust.size * 2) + (width + dust.size * 2)) % (width + dust.size * 2) - dust.size;
+        const wrappedY = ((dy + dust.size) % (height + dust.size * 2) + (height + dust.size * 2)) % (height + dust.size * 2) - dust.size;
+
+        const pulse = Math.sin(frame * 0.005 + dust.size) * 0.08;
+        ctx.globalAlpha = Math.max(0.05, Math.min(1, dust.baseAlpha + pulse));
+
+        const grd = ctx.createRadialGradient(wrappedX, wrappedY, 0, wrappedX, wrappedY, dust.size);
+        grd.addColorStop(0, dust.color);
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(wrappedX, wrappedY, dust.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
 
       // ── GRID LAYER (subtle) ──────────────────────────────────────────────
       ctx.strokeStyle = 'rgba(6,182,212,0.012)';
@@ -340,22 +430,26 @@ export const SpaceBackground: React.FC = () => {
         ast.y += ast.vy;
         ast.rotation += ast.rotSpeed;
 
-        // Wrap around screen
+        const ax = ast.x - mouse.x * ast.parallax * 8;
+        const ay = ast.y - mouse.y * ast.parallax * 8;
+
+        const wrappedX = ((ax + 40) % (width + 80) + (width + 80)) % (width + 80) - 40;
+        const wrappedY = ((ay + 40) % (height + 80) + (height + 80)) % (height + 80) - 40;
+
+        // Wrap actual coordinates to stay within sandbox limits
         if (ast.x < -40) ast.x = width + 40;
         if (ast.x > width + 40) ast.x = -40;
         if (ast.y < -40) ast.y = height + 40;
         if (ast.y > height + 40) ast.y = -40;
 
         ctx.save();
-        ctx.translate(ast.x, ast.y);
+        ctx.translate(wrappedX, wrappedY);
         ctx.rotate(ast.rotation);
         ctx.globalAlpha = ast.alpha;
 
-        // Glow
         ctx.shadowBlur = 10;
         ctx.shadowColor = ast.glowColor;
 
-        // Rock body
         ctx.fillStyle = ast.color;
         ctx.strokeStyle = ast.glowColor;
         ctx.lineWidth = 1.5;
@@ -373,9 +467,12 @@ export const SpaceBackground: React.FC = () => {
       });
 
       // ── SHOOTING STARS ───────────────────────────────────────────────────
-      // Spawn randomly
-      if (frame % 45 === 0 && Math.random() > 0.4) {
-        shootingStars.push(makeShootingStar(width, height));
+      // Spawn much more frequently: every 24 frames, 70% chance + meteor shower chance
+      if (frame % 24 === 0 && Math.random() > 0.3) {
+        const spawnCount = Math.random() > 0.85 ? 2 : 1;
+        for (let s = 0; s < spawnCount; s++) {
+          shootingStars.push(makeShootingStar(width, height));
+        }
       }
 
       for (let i = shootingStars.length - 1; i >= 0; i--) {
@@ -387,7 +484,6 @@ export const SpaceBackground: React.FC = () => {
 
         if (ss.life >= ss.maxLife) { shootingStars.splice(i, 1); continue; }
 
-        // Tail direction (opposite to velocity)
         const tx = ss.x - (ss.vx / Math.hypot(ss.vx, ss.vy)) * ss.length;
         const ty = ss.y - (ss.vy / Math.hypot(ss.vx, ss.vy)) * ss.length;
 
@@ -405,7 +501,6 @@ export const SpaceBackground: React.FC = () => {
         ctx.lineTo(ss.x, ss.y);
         ctx.stroke();
 
-        // Star head sparkle
         ctx.fillStyle = '#ffffff';
         ctx.globalAlpha = ss.alpha * 0.9;
         ctx.beginPath();
@@ -416,8 +511,8 @@ export const SpaceBackground: React.FC = () => {
       }
 
       // ── COMETS / FIREBALLS ───────────────────────────────────────────────
-      // Spawn logic
-      if (frame % 110 === 0 && comets.length < 4) {
+      // Spawn faster (every 65 frames) and allow up to 6 comets simultaneously
+      if (frame % 65 === 0 && comets.length < 6) {
         comets.push(makeComet(width, height));
       }
 
@@ -431,30 +526,45 @@ export const SpaceBackground: React.FC = () => {
           comets.splice(i, 1); continue;
         }
 
-        // Emit fire particles
-        for (let p = 0; p < 4; p++) {
+        // Emit beautiful particle tails (3 to 4 particles per frame)
+        const particleCount = Math.random() > 0.5 ? 4 : 3;
+        for (let p = 0; p < particleCount; p++) {
+          let r = 255, g = 100, b = 20;
+          if (c.type === 'plasma') {
+            if (c.color === '#06b6d4') {
+              r = Math.floor(20 + Math.random() * 50);
+              g = Math.floor(180 + Math.random() * 75);
+              b = 255;
+            } else {
+              r = 217;
+              g = Math.floor(70 + Math.random() * 80);
+              b = 239;
+            }
+          } else {
+            r = 255;
+            g = Math.floor(100 + Math.random() * 120);
+            b = Math.floor(Math.random() * 40);
+          }
+
           c.particles.push({
             x: c.x + (Math.random() - 0.5) * 4,
             y: c.y + (Math.random() - 0.5) * 4,
             vx: -c.vx * 0.35 + (Math.random() - 0.5) * 1.2,
             vy: -c.vy * 0.35 + (Math.random() - 0.5) * 1.2,
             life: 0,
-            maxLife: 25 + Math.floor(Math.random() * 25),
+            maxLife: 30 + Math.floor(Math.random() * 25),
             size: 2 + Math.random() * 5,
-            r: 255,
-            g: Math.floor(80 + Math.random() * 140),
-            b: Math.floor(Math.random() * 30),
+            r, g, b,
           });
         }
 
-        // Update + draw fire particles
+        // Update and draw fire particles
         for (let pi = c.particles.length - 1; pi >= 0; pi--) {
           const p = c.particles[pi];
           p.x += p.vx;
           p.y += p.vy;
           p.life++;
           const t = p.life / p.maxLife;
-          // Fade from orange → magenta → transparent
           const r = Math.floor(p.r);
           const g = Math.floor(p.g * (1 - t));
           const b = Math.floor(p.b + t * 100);
@@ -475,12 +585,12 @@ export const SpaceBackground: React.FC = () => {
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
 
-        // Draw comet head
         drawCometHead(c);
       }
 
       // ── ROCKETS ──────────────────────────────────────────────────────────
-      if (frame % 200 === 0 && rockets.length < 3) {
+      // Spawns faster (every 130 frames) and allow up to 5 rockets simultaneously
+      if (frame % 130 === 0 && rockets.length < 5) {
         rockets.push(makeRocket(width, height));
       }
 
@@ -492,17 +602,18 @@ export const SpaceBackground: React.FC = () => {
 
         if (r.life >= r.maxLife) { rockets.splice(i, 1); continue; }
 
-        // Emit exhaust particles
+        // Emit exhaust particles with smooth plume velocity
         const exhaustAngle = r.angle + Math.PI;
-        for (let e = 0; e < 3; e++) {
+        const eCount = r.scale > 0.9 ? 4 : 2;
+        for (let e = 0; e < eCount; e++) {
           r.exhaust.push({
-            x: r.x + Math.cos(exhaustAngle) * 18 * r.scale + (Math.random() - 0.5) * 4,
-            y: r.y + Math.sin(exhaustAngle) * 18 * r.scale + (Math.random() - 0.5) * 4,
-            vx: Math.cos(exhaustAngle) * (0.8 + Math.random() * 1.5) + (Math.random() - 0.5) * 0.5,
-            vy: Math.sin(exhaustAngle) * (0.8 + Math.random() * 1.5) + (Math.random() - 0.5) * 0.5,
+            x: r.x + Math.cos(exhaustAngle) * 18 * r.scale + (Math.random() - 0.5) * 3,
+            y: r.y + Math.sin(exhaustAngle) * 18 * r.scale + (Math.random() - 0.5) * 3,
+            vx: Math.cos(exhaustAngle) * (1.2 + Math.random() * 2.0) + (Math.random() - 0.5) * 0.4,
+            vy: Math.sin(exhaustAngle) * (1.2 + Math.random() * 2.0) + (Math.random() - 0.5) * 0.4,
             life: 0,
-            maxLife: 20 + Math.floor(Math.random() * 25),
-            size: 2 + Math.random() * 4,
+            maxLife: 25 + Math.floor(Math.random() * 30),
+            size: 2.5 + Math.random() * 4,
           });
         }
 
@@ -511,14 +622,31 @@ export const SpaceBackground: React.FC = () => {
           const ep = r.exhaust[ei];
           ep.x += ep.vx; ep.y += ep.vy; ep.life++;
           const t = ep.life / ep.maxLife;
-          const a = (1 - t) * 0.7;
-          const size = ep.size * (1 - t * 0.5);
-          const rc = Math.floor(255 * (1 - t * 0.5));
-          const gc = Math.floor(150 * (1 - t));
-          const bc = Math.floor(50 + t * 100);
+          const a = (1 - t) * 0.8;
+          const size = ep.size * (1 - t * 0.6);
+          
+          let rc = 255, gc = 255, bc = 255;
+          if (r.color === '#06b6d4') {
+            rc = Math.floor(255 * (1 - t));
+            gc = Math.floor(200 + t * 55);
+            bc = 255;
+          } else if (r.color === '#8b5cf6') {
+            rc = Math.floor(139 + t * 116);
+            gc = Math.floor(92 * (1 - t));
+            bc = 255;
+          } else if (r.color === '#d946ef') {
+            rc = 217;
+            gc = Math.floor(70 * (1 - t));
+            bc = 239;
+          } else {
+            rc = 234;
+            gc = Math.floor(179 * (1 - t));
+            bc = 8;
+          }
+          
           ctx.globalAlpha = a;
           ctx.fillStyle = `rgb(${rc},${gc},${bc})`;
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = 8;
           ctx.shadowColor = r.color;
           ctx.beginPath();
           ctx.arc(ep.x, ep.y, size, 0, Math.PI * 2);
@@ -528,7 +656,6 @@ export const SpaceBackground: React.FC = () => {
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
 
-        // Draw rocket body
         drawRocket(r);
       }
 
