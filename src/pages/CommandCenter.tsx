@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Activity, Cpu, Award, Radar, Network, Terminal, 
-  Layers, HardDrive, Compass
+  Activity, Award, Radar, Network, Terminal, 
+  Layers
 } from 'lucide-react';
 import { achievementsData } from '../data/achievementsData';
 import { playClick, playHover, playScan, playUnlock } from '../utils/sounds';
@@ -51,33 +51,7 @@ export const CommandCenter: React.FC = () => {
     return { courses, hackathons, wins, internships, workshops, competitions, badges, projects };
   }, []);
 
-  // System telemetry info
-  const [telemetry, setTelemetry] = useState({
-    cpuLoad: '42.8%',
-    ramUsage: '5.8 GB / 16 GB',
-    coreTemp: '47°C',
-    uptime: '02:47:15',
-    linkSpeed: '782 Mbps',
-    sector: 'VJ-COSMIC-94'
-  });
 
-  useEffect(() => {
-    // Dynamic simulation updates for high-tech telemetry dashboard
-    const interval = setInterval(() => {
-      setTelemetry(prev => {
-        const cpu = (40 + Math.random() * 8).toFixed(1) + '%';
-        const temp = Math.floor(45 + Math.random() * 5) + '°C';
-        const sec = 'VJ-COSMIC-' + Math.floor(90 + Math.random() * 10);
-        return {
-          ...prev,
-          cpuLoad: cpu,
-          coreTemp: temp,
-          sector: sec
-        };
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Identity scan simulator
   const triggerIdentityScan = () => {
@@ -189,46 +163,7 @@ export const CommandCenter: React.FC = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-8 select-none font-mono text-slate-100">
-      {/* ─── HUD GLOBAL REGISTRY BANNER ─── */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full bg-slate-950/75 border border-cyan-500/20 backdrop-blur-md rounded-2xl p-4 mb-8 flex flex-wrap items-center justify-between gap-6 relative overflow-hidden"
-      >
-        <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
-        
-        {/* Left Side: System status indicator */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <span className="w-3 h-3 bg-cyan-400 rounded-full block animate-ping absolute opacity-75" />
-            <span className="w-3 h-3 bg-cyan-500 rounded-full block relative shadow-neon-cyan" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] text-cyan-400 tracking-wider font-bold">SYSTEM CONTROL BRIDGE ACTIVE</span>
-            <span className="text-[9px] text-slate-400">OPERATOR ID: #VJ-90718 // SECTOR: {telemetry.sector}</span>
-          </div>
-        </div>
 
-        {/* Live Telemetry details block */}
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[10px] text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <Cpu size={12} className="text-cyan-400" />
-            <span>CPU: <strong className="text-white">{telemetry.cpuLoad}</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Activity size={12} className="text-purple-400" />
-            <span>TEMP: <strong className="text-white">{telemetry.coreTemp}</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <HardDrive size={12} className="text-pink-400" />
-            <span>MEM: <strong className="text-white">{telemetry.ramUsage}</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Compass size={12} className="text-emerald-400" />
-            <span>SYS_UP: <strong className="text-white">{telemetry.uptime}</strong></span>
-          </div>
-        </div>
-      </motion.div>
 
       {/* ─── MAIN GRID LAYOUT ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -442,48 +377,7 @@ export const CommandCenter: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="flex flex-col gap-8"
               >
-                {/* Level System Banner */}
-                <div className="bg-glass-card border border-white/5 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-                  {/* Left part: Level ring & XP */}
-                  <div className="flex items-center gap-5">
-                    {/* Glowing Circular Level Badge */}
-                    <div className="relative w-20 h-20 flex items-center justify-center flex-shrink-0">
-                      {/* Rotating ring */}
-                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/40 animate-[spin_20s_linear_infinite]" />
-                      <div className="absolute -inset-1 rounded-full border border-purple-500/20" />
-                      {/* Level center */}
-                      <div className="w-16 h-16 rounded-full bg-slate-950/95 border border-cyan-500/30 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(6,182,212,0.2)]">
-                        <span className="text-[9px] text-slate-500">LEVEL</span>
-                        <span className="text-2xl font-black text-white text-glow-cyan">47</span>
-                      </div>
-                    </div>
 
-                    <div className="flex flex-col">
-                      <span className="text-xs text-purple-400 font-bold tracking-widest uppercase">RANK: ACHIEVEMENT COMMANDER</span>
-                      <span className="text-[10px] text-slate-400 mt-1">CURRENT XP: <strong className="text-slate-200">12,540 / 15,000 XP</strong></span>
-                      <span className="text-[9px] text-cyan-400 mt-0.5">SPEED MULTIPLIER: 1.75X active</span>
-                    </div>
-                  </div>
-
-                  {/* XP Slider Bar */}
-                  <div className="flex-1 w-full flex flex-col justify-center">
-                    <div className="h-3 w-full bg-slate-950/80 rounded-full border border-white/5 relative overflow-hidden p-[2px]">
-                      {/* Progress bar glow */}
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: '83.6%' }}
-                        transition={{ duration: 1.5, ease: 'easeOut' }}
-                        className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 relative"
-                      >
-                        <div className="absolute right-0 top-0 h-full w-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_#ffffff]" />
-                      </motion.div>
-                    </div>
-                    <div className="flex justify-between text-[9px] text-slate-500 mt-2">
-                      <span>NEXT RANK AT 15,000 XP</span>
-                      <span className="text-cyan-400 animate-pulse">83.6% LEVEL COMPLETED</span>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Career Mission objectives */}
                 <div className="bg-glass-card border border-white/5 rounded-2xl p-6 relative overflow-hidden">
