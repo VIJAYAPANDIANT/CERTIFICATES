@@ -142,59 +142,48 @@ export const CommandCenter: React.FC = () => {
   // Featured items definitions matching achievementsData
   const featuredAchievements = [
     {
-      id: 'hackathon',
-      tag: '🏆 HACKATHON MILESTONE',
-      title: 'National HackEast Build 2025',
-      place: '1st Place (Winner)',
-      description: 'Secured Gold for Nebula Cloud Shield, an automated security orchestration console constructed within a 36-hour sprint.',
-      skills: ['React', 'Node.js', 'TailwindCSS'],
-      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)] border-orange-500/25',
-      accentColor: 'text-orange-400',
-      badge: '🏆 GOLD MEDAL'
-    },
-    {
-      id: 'internship',
-      tag: '💼 PROFESSIONAL EXPERIENCE',
+      id: 'zero2site',
+      tag: '💼 SYSTEM DEPLOYMENTS',
       title: 'Cloud Development Intern',
-      place: 'Zero2site - Cloud Architecture',
-      description: 'Built scalable client demonstraction projects, configured custom REST APIs, and managed cloud deployments.',
-      skills: ['Cloud Dev', 'API Configs', 'Node.js'],
+      place: 'Zero2site',
+      description: 'Engaged in client demonstration projects, configured custom REST APIs, and managed cloud deployment architectures.',
+      skills: ['Cloud Development', 'Client Demo Projects', 'API Configurations'],
       glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)] border-emerald-500/25',
       accentColor: 'text-emerald-400',
       badge: '💼 CORE ARCHITECT'
     },
     {
-      id: 'course',
-      tag: '📜 TOP ACADEMIC CREDENTIAL',
-      title: 'GCP Architecting Specialization',
-      place: 'Coursera / Google Cloud certified',
-      description: 'Validated architecture competence covering Compute Engines, Kubernetes orchestration, and complex security routing models.',
-      skills: ['Google Cloud', 'Kubernetes', 'Storage'],
+      id: 'cognifyz',
+      tag: '☕ CORE DEVELOPMENT',
+      title: 'Java Development Intern',
+      place: 'Cognifyz Technologies',
+      description: 'Implemented core Java systems, worked on complexity optimizations, solved structural problems, and coordinated with teams.',
+      skills: ['Java Development', 'Core Java', 'Problem Solving'],
       glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)] border-blue-500/25',
       accentColor: 'text-blue-400',
-      badge: '📜 SPECIALIST'
+      badge: '☕ JAVA DEVELOPER'
     },
     {
-      id: 'competition',
-      tag: '⚔️ ALGORITHMIC VICTORY',
-      title: 'CodeChef Starters 142 Contest',
-      place: '1st Place (Winner) - Div 3',
-      description: 'Secured global top spot by completing advanced algorithm puzzles, ensuring optimal space/time complexity metrics.',
-      skills: ['Data Structures', 'Algorithms', 'C++'],
-      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)] border-red-500/25',
-      accentColor: 'text-red-400',
-      badge: '⚔️ CONTENDER'
+      id: 'novitech-da',
+      tag: '📊 STATISTICAL ANALYSIS',
+      title: 'Data Analytics Intern',
+      place: 'NoviTech R&D',
+      description: 'Successfully conducted statistical analysis and designed data visualizations to extract actionable insights.',
+      skills: ['Data Analytics', 'Statistical Analysis', 'Data Visualization'],
+      glow: 'shadow-[0_0_20px_rgba(6,182,212,0.3)] border-cyan-500/25',
+      accentColor: 'text-cyan-400',
+      badge: '📊 DATA ANALYST'
     },
     {
-      id: 'badge',
-      tag: '🔰 GAMIFIED ACHIEVEMENT',
-      title: 'Legendary Code Knight Badge',
-      place: 'LeetCode platform milestone',
-      description: 'Awarded for maintaining an active problem-solving streak on LeetCode for 50 consecutive days with optimized submissions.',
-      skills: ['Problem Solving', 'Data Structures', 'Daily Coding'],
+      id: 'novitech-ml',
+      tag: '🧠 MODEL ENGINEERING',
+      title: 'Machine Learning Intern',
+      place: 'NoviTech R&D',
+      description: 'Trained ML predictive models, evaluated metrics, and processed data layers for automated systems.',
+      skills: ['Machine Learning', 'Model Training', 'Predictive Analytics'],
       glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)] border-purple-500/25',
       accentColor: 'text-purple-400',
-      badge: '🔰 LEGENDARY KNIGHT'
+      badge: '🧠 AI ENGINEER'
     }
   ];
 
