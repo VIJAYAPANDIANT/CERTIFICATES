@@ -33,7 +33,9 @@ function App() {
   // Global 3D Hover Tilt handler for all cards with class bg-glass-card
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      const card = (e.target as HTMLElement).closest('.bg-glass-card') as HTMLElement | null;
+      const target = e.target as HTMLElement;
+      if (!target || typeof target.closest !== 'function') return;
+      const card = target.closest('.bg-glass-card') as HTMLElement | null;
       if (!card) return;
 
       const rect = card.getBoundingClientRect();
@@ -54,7 +56,9 @@ function App() {
     };
 
     const handleMouseLeave = (e: MouseEvent) => {
-      const card = (e.target as HTMLElement).closest('.bg-glass-card') as HTMLElement | null;
+      const target = e.target as HTMLElement;
+      if (!target || typeof target.closest !== 'function') return;
+      const card = target.closest('.bg-glass-card') as HTMLElement | null;
       if (!card) return;
 
       card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
