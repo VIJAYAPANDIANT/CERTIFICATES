@@ -1,8 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { playHover, playClick } from '../utils/sounds';
 import { achievementsData } from '../data/achievementsData';
-import { BookOpen, Trophy, Award, Briefcase, Flame, Sparkles } from 'lucide-react';
+import type { Achievement } from '../data/achievementsData';
+import { 
+  Compass, Play, Pause, ZoomIn, ArrowRight, 
+  ArrowLeft, Download, ExternalLink, Cpu 
+} from 'lucide-react';
+
+// ─── Interfaces ──────────────────────────────────────────────────────────────
+
+interface PlanetConfig {
+  name: 'Internships' | 'Courses' | 'Hackathons' | 'Workshops' | 'Competitions' | 'Badges';
+  color: string;
+  glowColor: string;
+  emoji: string;
+  description: string;
+  rx: number; // Orbit Radius X
+  ry: number; // Orbit Radius Y
+  speed: number;
+}
+
+interface SystemMoon {
+  id: string;
+  name: string;
+  achievement: Achievement;
+  color: string;
+  angle: number;
+  relRx: number; // Relative radius orbit X
+  relRy: number; // Relative radius orbit Y
+  speed: number;
+}
+
+interface SpaceWarpStar {
+  x: number;
+  y: number;
+  z: number;
+  length: number;
+}
+
+// ─── Custom Brand Settings ───────────────────────────────────────────────────
 
 const profiles = [
   {
@@ -85,28 +122,70 @@ const profiles = [
       </svg>
     ),
   },
-  {
-    name: 'HackerRank',
-    url: 'https://www.hackerrank.com/profile/vijayapandian111',
-    colorClass: 'hover:text-[#2ec866] hover:border-[#2ec866] hover:shadow-[0_0_12px_rgba(46,200,102,0.45)]',
-    icon: (
-      <svg viewBox="0 0 512 512" fill="currentColor" className="w-4 h-4">
-        <path d="M477.5 128C463 103.05 285.13 0 256.16 0S49.25 102.79 34.84 128s-14.49 230.8 0 256 192.38 128 221.32 128S463 409.08 477.49 384s14.51-231 .01-256zM316.13 414.22c-4 0-40.91-35.77-38-38.69.87-.87 6.26-1.48 17.55-1.83 0-26.23.59-68.59.94-86.32 0-2-.44-3.43-.44-5.85h-79.93c0 7.1-.46 36.2 1.37 72.88.23 4.54-1.58 6-5.74 5.94-10.13 0-20.27-.11-30.41-.08-4.1 0-5.87-1.53-5.74-6.11.92-33.44 3-84-.15-212.67v-3.17c-9.67-.35-16.38-1-17.26-1.84-2.92-2.92 34.54-38.69 38.49-38.69s41.17 35.78 38.27 38.69c-.87.87-7.9 1.49-16.77 1.84v3.16c-2.42 25.75-2 79.59-2.63 105.39h80.26c0-4.55.39-34.74-1.2-83.64-.1-3.39.95-5.17 4.21-5.2 11.07-.08 22.15-.13 33.23-.06 3.46 0 4.57 1.72 4.5 5.38C333 354.64 336 341.29 336 373.69c8.87.35 16.82 1 17.69 1.84 2.88 2.91-33.62 38.69-37.58 38.69z" />
-      </svg>
-    ),
-  },
 ];
 
-interface CategoryNode {
-  name: 'Internships' | 'Hackathons' | 'Courses' | 'Workshops' | 'Competitions' | 'Badges';
-  icon: React.ComponentType<any>;
-  color: string;
-  glowColor: string;
-  description: string;
-  stat: string;
-  angle: number; // orbital angle
-  radius: number; // orbital radius
-}
+const categoryPlanetConfigs: PlanetConfig[] = [
+  {
+    name: 'Internships',
+    color: '#10b981', // Emerald Green
+    glowColor: 'rgba(16, 185, 129, 0.45)',
+    emoji: '💼',
+    description: 'Industry and research experiences',
+    rx: 230,
+    ry: 130,
+    speed: 0.0018,
+  },
+  {
+    name: 'Courses',
+    color: '#3b82f6', // Blue
+    glowColor: 'rgba(59, 130, 246, 0.45)',
+    emoji: '📚',
+    description: 'Verified academic coursework',
+    rx: 310,
+    ry: 180,
+    speed: 0.0012,
+  },
+  {
+    name: 'Hackathons',
+    color: '#f97316', // Orange
+    glowColor: 'rgba(249, 115, 22, 0.45)',
+    emoji: '🏆',
+    description: 'Product builds & fast prototyping',
+    rx: 400,
+    ry: 230,
+    speed: 0.0009,
+  },
+  {
+    name: 'Workshops',
+    color: '#06b6d4', // Cyan
+    glowColor: 'rgba(6, 182, 212, 0.45)',
+    emoji: '🎓',
+    description: 'Bootcamps & professional training',
+    rx: 490,
+    ry: 280,
+    speed: 0.0007,
+  },
+  {
+    name: 'Competitions',
+    color: '#ef4444', // Red
+    glowColor: 'rgba(239, 68, 68, 0.45)',
+    emoji: '⚔',
+    description: 'Competitive coding & challenges',
+    rx: 580,
+    ry: 330,
+    speed: 0.0005,
+  },
+  {
+    name: 'Badges',
+    color: '#a855f7', // Purple
+    glowColor: 'rgba(168, 85, 247, 0.45)',
+    emoji: '🔰',
+    description: 'Gaming style skill accomplishments',
+    rx: 670,
+    ry: 380,
+    speed: 0.0004,
+  },
+];
 
 interface UniverseProps {
   onSelectCategory: (category: string) => void;
@@ -116,81 +195,67 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
   const canvas2DRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Compute actual counts for statistics
+  // States
+  const [hoveredNode, setHoveredNode] = useState<{ name: string; stat: string; description: string; color: string; glowColor: string } | null>(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  
+  // Custom HUD controls
+  const [orbitalSpeedScale, setOrbitalSpeedScale] = useState<number>(1.0); // Gravity Control
+  const [zoomLevel, setZoomLevel] = useState<number>(0.95); // System Zoom
+  const [showOrbits, setShowOrbits] = useState<boolean>(true);
+  const [showConstellations, setShowConstellations] = useState<boolean>(false);
+  const [tourMode, setTourMode] = useState<boolean>(false);
+  const [tourIndex, setTourIndex] = useState<number>(0);
+  const [activePlanetFilters, setActivePlanetFilters] = useState<string[]>(['Internships', 'Courses', 'Hackathons', 'Workshops', 'Competitions', 'Badges']);
+
+  // Refs for animation parameters to read in real-time
+  const controlsRef = useRef({
+    speed: 1.0,
+    zoom: 0.95,
+    showOrbits: true,
+    showConstellations: false,
+    activeFilters: ['Internships', 'Courses', 'Hackathons', 'Workshops', 'Competitions', 'Badges'],
+    tourMode: false,
+    tourIndex: 0,
+    selectedAchievement: null as Achievement | null,
+  });
+
+  useEffect(() => {
+    controlsRef.current.speed = orbitalSpeedScale;
+    controlsRef.current.zoom = zoomLevel;
+    controlsRef.current.showOrbits = showOrbits;
+    controlsRef.current.showConstellations = showConstellations;
+    controlsRef.current.activeFilters = activePlanetFilters;
+    controlsRef.current.tourMode = tourMode;
+    controlsRef.current.tourIndex = tourIndex;
+    controlsRef.current.selectedAchievement = selectedAchievement;
+  }, [orbitalSpeedScale, zoomLevel, showOrbits, showConstellations, activePlanetFilters, tourMode, tourIndex, selectedAchievement]);
+
+  // Chronologically sorted achievements for the Constellation & Tour Autopilot
+  const chronologicalAchievements = useMemo(() => {
+    return [...achievementsData].sort(
+      (a, b) => new Date(a.issueDate).getTime() - new Date(b.issueDate).getTime()
+    );
+  }, []);
+
   const getStats = (cat: string) => {
     return achievementsData.filter((a) => a.category === cat).length.toString();
   };
 
-  const categories: CategoryNode[] = [
-    {
-      name: 'Internships',
-      icon: Briefcase,
-      color: '#10b981', // Emerald green
-      glowColor: 'rgba(16, 185, 129, 0.4)',
-      description: 'Industry and research experiences',
-      stat: `${getStats('Internships')} Positions`,
-      angle: 0,
-      radius: 200,
-    },
-    {
-      name: 'Hackathons',
-      icon: Trophy,
-      color: '#f97316', // Orange
-      glowColor: 'rgba(249, 115, 22, 0.4)',
-      description: 'Product builds & fast prototyping',
-      stat: `${getStats('Hackathons')} Hackathons`,
-      angle: Math.PI / 3,
-      radius: 200,
-    },
-    {
-      name: 'Courses',
-      icon: BookOpen,
-      color: '#3b82f6', // Blue
-      glowColor: 'rgba(59, 130, 246, 0.4)',
-      description: 'Verified academic coursework',
-      stat: `${getStats('Courses')} Certificates`,
-      angle: (2 * Math.PI) / 3,
-      radius: 200,
-    },
-    {
-      name: 'Workshops',
-      icon: Sparkles,
-      color: '#06b6d4', // Cyan
-      glowColor: 'rgba(6, 182, 212, 0.4)',
-      description: 'Bootcamps & professional training',
-      stat: `${getStats('Workshops')} Workshops`,
-      angle: Math.PI,
-      radius: 200,
-    },
-    {
-      name: 'Competitions',
-      icon: Flame,
-      color: '#ef4444', // Red
-      glowColor: 'rgba(239, 68, 68, 0.4)',
-      description: 'Competitive coding & challenges',
-      stat: `${getStats('Competitions')} Placements`,
-      angle: (4 * Math.PI) / 3,
-      radius: 200,
-    },
-    {
-      name: 'Badges',
-      icon: Award,
-      color: '#a855f7', // Purple
-      glowColor: 'rgba(168, 85, 247, 0.4)',
-      description: 'Gaming style skill accomplishments',
-      stat: `${getStats('Badges')} Badges`,
-      angle: (5 * Math.PI) / 3,
-      radius: 200,
-    },
-  ];
+  // Avatar image loaded check
+  const avatarImageRef = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/avatar.jpg';
+    img.onload = () => {
+      avatarImageRef.current = img;
+    };
+  }, []);
 
-  const [hoveredNode, setHoveredNode] = useState<CategoryNode | null>(null);
-
-  // 2D Galaxy Interactive fallback & dashboard visualizer
+  // Main Galaxy Animation Loop
   useEffect(() => {
     const canvas = canvas2DRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -206,393 +271,1033 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
     };
     window.addEventListener('resize', handleResize);
 
-    // Orbit parameters
-    let angleOffset = 0;
-    let targetAngleOffset = 0;
+    // Coordinate camera systems
+    const camera = {
+      x: 0,
+      y: 0,
+      zoom: 0.95,
+      targetX: 0,
+      targetY: 0,
+      targetZoom: 0.95,
+      isWarping: false,
+      warpAlpha: 0,
+    };
+
+    // System base orbit angle
+    let galaxyBaseAngle = 0;
+    let latestRenderingList: any[] = [];
+    let orbitRotationOffset = 0; // Managed by mouse dragging
     let isDragging = false;
-    let startMouseX = 0;
+    let dragStartX = 0;
+    let dragStartY = 0;
 
-    const nodes = categories.map((cat, idx) => ({
-      ...cat,
-      angle: (idx * Math.PI * 2) / categories.length,
-    }));
-
-    // Particle star field inside universe core
-    const orbitalParticles: { angle: number; radius: number; size: number; speed: number; alpha: number; color: string }[] = [];
-    const starColors = ['#06b6d4', '#8b5cf6', '#a855f7', '#3b82f6'];
-    for (let i = 0; i < 200; i++) {
-      orbitalParticles.push({
-        angle: Math.random() * Math.PI * 2,
-        radius: Math.random() * 250 + 20,
-        size: Math.random() * 1.5 + 0.5,
-        speed: (Math.random() * 0.002 + 0.0005) * (Math.random() > 0.5 ? 1 : -1),
-        alpha: Math.random() * 0.7 + 0.1,
-        color: starColors[Math.floor(Math.random() * starColors.length)],
+    // Build space warp stars
+    const warpStars: SpaceWarpStar[] = [];
+    for (let i = 0; i < 180; i++) {
+      warpStars.push({
+        x: (Math.random() - 0.5) * 1200,
+        y: (Math.random() - 0.5) * 1000,
+        z: Math.random() * 1000,
+        length: 2 + Math.random() * 8,
       });
     }
 
-    const mousePos = { x: 0, y: 0 };
-    let activeHoverIdx = -1;
+    // Solar flares angles for sun coronal discharges
+    const flares: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      flares.push(Math.random() * Math.PI * 2);
+    }
 
-    const drawNode = (node: typeof nodes[0], currentAngle: number, index: number) => {
-      const centerX = width / 2;
-      const centerY = height / 2;
-
-      // Elliptical orbit calculation (gives 3D depth perspective)
-      const radiusX = Math.min(width * 0.32, 280);
-      const radiusY = Math.min(height * 0.22, 160);
-
-      const x = centerX + Math.cos(currentAngle) * radiusX;
-      const y = centerY + Math.sin(currentAngle) * radiusY;
-
-      // Depth scale (smaller at back, larger at front)
-      const zScale = (Math.sin(currentAngle) + 2) / 3; // 0.33 to 1.0
-      const nodeSize = 42 * zScale;
-      const isHovered = index === activeHoverIdx;
-
-      // Draw orbit path segment
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Node shadow/glow
-      ctx.shadowBlur = isHovered ? 25 : 10 * zScale;
-      ctx.shadowColor = node.color;
-
-      // Draw glowing background ring
-      ctx.fillStyle = isHovered ? node.color : 'rgba(15, 12, 35, 0.75)';
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = isHovered ? 3 : 1.5;
-
-      ctx.beginPath();
-      ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.shadowBlur = 0; // reset
-
-      // Draw icon symbol manually inside node
-      ctx.fillStyle = isHovered ? '#030014' : node.color;
-      ctx.font = `bold ${Math.floor(18 * zScale)}px Space Grotesk`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      // Custom icon mapping
-      let emoji = '💼';
-      if (node.name === 'Hackathons') emoji = '🏆';
-      else if (node.name === 'Courses') emoji = '📚';
-      else if (node.name === 'Workshops') emoji = '🎓';
-      else if (node.name === 'Competitions') emoji = '⚔';
-      else if (node.name === 'Badges') emoji = '🔰';
-
-      ctx.fillText(emoji, x, y);
-
-      // Floating title labels below node
-      ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(226, 232, 240, 0.8)';
-      ctx.font = `${isHovered ? 'bold' : 'normal'} ${Math.floor(13 * zScale + (isHovered ? 2 : 0))}px Space Grotesk`;
-      ctx.fillText(node.name, x, y + nodeSize + 18);
-
-      // Sub-label for stats
-      ctx.fillStyle = isHovered ? node.color : 'rgba(148, 163, 184, 0.6)';
-      ctx.font = `${Math.floor(11 * zScale)}px Courier New`;
-      ctx.fillText(node.stat, x, y + nodeSize + 32);
-
-      return { x, y, size: nodeSize };
+    // Moons mapping setup relative to planets
+    const getMoonsForCategory = (catName: string, planetColor: string): SystemMoon[] => {
+      const catAchievements = achievementsData.filter(a => a.category === catName);
+      return catAchievements.map((item, idx) => {
+        const count = catAchievements.length;
+        const angle = (idx * Math.PI * 2) / (count || 1);
+        return {
+          id: item.id,
+          name: item.title,
+          achievement: item,
+          color: planetColor,
+          angle,
+          relRx: 52, // moon relative orbit radius X
+          relRy: 32, // moon relative orbit radius Y
+          speed: 0.009 + Math.random() * 0.006,
+        };
+      });
     };
 
-    const render2DUniverse = () => {
-      ctx.clearRect(0, 0, width, height);
+    // Store planet base angles and moon speeds
+    const planetAngles = categoryPlanetConfigs.map(() => Math.random() * Math.PI * 2);
+    const planetMoons = categoryPlanetConfigs.map((cfg) => getMoonsForCategory(cfg.name, cfg.color));
 
-      // Slowly float base angle
-      if (!isDragging) {
-        targetAngleOffset += 0.001;
-      }
-      angleOffset += (targetAngleOffset - angleOffset) * 0.1;
+    // Particle trace tails for moons
+    const moonTailParticles: { x: number; y: number; color: string; alpha: number }[] = [];
 
-      const centerX = width / 2;
-      const centerY = height / 2;
+    // Track active interactions
+    const mousePos = { x: 0, y: 0 };
+    let hoveredObjectId: string | null = null;
+    let hoveredObjectType: 'planet' | 'moon' | 'sun' | null = null;
 
-      // Draw central galaxy core
-      const coreGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 90);
-      coreGlow.addColorStop(0, 'rgba(139, 92, 246, 0.45)');
-      coreGlow.addColorStop(0.3, 'rgba(6, 182, 212, 0.2)');
-      coreGlow.addColorStop(1, 'rgba(3, 0, 20, 0)');
-      ctx.fillStyle = coreGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 90, 0, Math.PI * 2);
-      ctx.fill();
+    // Draw Coronal flare paths
+    const drawSunCoronalFlares = (cx: number, cy: number, radius: number, time: number) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.shadowBlur = 35;
+      ctx.shadowColor = '#06b6d4';
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.09)';
 
-      // Render orbiting space particles
-      orbitalParticles.forEach((p) => {
-        p.angle += p.speed;
-        // Elliptical coordinate computation
-        const rx = p.radius * Math.min(width * 0.0015, 1.2);
-        const ry = p.radius * 0.6 * Math.min(height * 0.0015, 1.2);
-        const px = centerX + Math.cos(p.angle + angleOffset * 0.3) * rx;
-        const py = centerY + Math.sin(p.angle + angleOffset * 0.3) * ry;
-
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
+      flares.forEach((angle, idx) => {
+        // Rotate flare slowly over time
+        const currentAngle = angle + time * 0.004 * (idx % 2 === 0 ? 1 : -1);
+        const flareLength = radius * (1.1 + Math.sin(time * 0.02 + idx) * 0.2);
+        
         ctx.beginPath();
-        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(currentAngle - 0.18) * radius * 0.8, Math.sin(currentAngle - 0.18) * radius * 0.8);
+        ctx.lineTo(Math.cos(currentAngle) * flareLength, Math.sin(currentAngle) * flareLength);
+        ctx.lineTo(Math.cos(currentAngle + 0.18) * radius * 0.8, Math.sin(currentAngle + 0.18) * radius * 0.8);
+        ctx.closePath();
         ctx.fill();
       });
-      ctx.globalAlpha = 1.0;
+      ctx.restore();
+    };
 
-      // Core text display
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 15px Space Grotesk';
-      ctx.fillText('CORE SYSTEM', centerX, centerY - 6);
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
-      ctx.font = '9px monospace';
-      ctx.fillText('CLICK ORBITS TO ENTER', centerX, centerY + 10);
+    // ─── MAIN ANIMATION FRAME ─────────────────────────────────────────────────
+    const animateUniverse = () => {
+      ctx.clearRect(0, 0, width, height);
+      const time = Date.now();
 
-      // Render nodes and record their rendered positions
-      const renderedPositions: { x: number; y: number; size: number }[] = [];
-      nodes.forEach((node, idx) => {
-        const currentAngle = node.angle + angleOffset;
-        const pos = drawNode(node, currentAngle, idx);
-        renderedPositions.push(pos);
-      });
+      // Read real-time control parameters
+      const cfgSpeed = controlsRef.current.speed;
+      const cfgZoom = controlsRef.current.zoom;
+      const cfgShowOrbits = controlsRef.current.showOrbits;
+      const cfgShowConstellations = controlsRef.current.showConstellations;
+      const cfgFilters = controlsRef.current.activeFilters;
+      const cfgTourMode = controlsRef.current.tourMode;
+      const cfgTourIndex = controlsRef.current.tourIndex;
 
-      // Handle hover interactions
-      let foundHoverIdx = -1;
-      for (let i = 0; i < renderedPositions.length; i++) {
-        const pos = renderedPositions[i];
-        const dx = mousePos.x - pos.x;
-        const dy = mousePos.y - pos.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < pos.size + 15) {
-          foundHoverIdx = i;
-          break;
+      // Slowly increment base orbit angle
+      galaxyBaseAngle += 0.0018 * cfgSpeed;
+
+      // Autopilot Tour Camera Lock-on
+      if (cfgTourMode && chronologicalAchievements[cfgTourIndex]) {
+        const targetAchievement = chronologicalAchievements[cfgTourIndex];
+        // Locate coordinates of this achievement moon in system space
+        let foundX = 0;
+        let foundY = 0;
+        
+        categoryPlanetConfigs.forEach((pCfg, pIdx) => {
+          if (pCfg.name === targetAchievement.category) {
+            const currentAngle = planetAngles[pIdx] + galaxyBaseAngle + orbitRotationOffset;
+            const px = pCfg.rx * Math.cos(currentAngle);
+            const py = pCfg.ry * Math.sin(currentAngle);
+
+            const moons = planetMoons[pIdx];
+            const mIdx = moons.findIndex(m => m.id === targetAchievement.id);
+            if (mIdx !== -1) {
+              const m = moons[mIdx];
+              const moonAngle = m.angle + (time * 0.001 * m.speed * cfgSpeed);
+              foundX = px + m.relRx * Math.cos(moonAngle);
+              foundY = py + m.relRy * Math.sin(moonAngle);
+            }
+          }
+        });
+
+        camera.targetX = foundX;
+        camera.targetY = foundY;
+        camera.targetZoom = 1.95; // Extreme close-up focusing
+
+        const distance = Math.hypot(camera.targetX - camera.x, camera.targetY - camera.y);
+        if (distance > 18) {
+          camera.isWarping = true;
+          camera.warpAlpha += (1 - camera.warpAlpha) * 0.1;
+        } else {
+          camera.isWarping = false;
+          camera.warpAlpha += (0 - camera.warpAlpha) * 0.15;
         }
+      } else {
+        // Standard Galaxy view mapping
+        camera.targetX = 0;
+        camera.targetY = 0;
+        camera.targetZoom = cfgZoom;
+        camera.isWarping = false;
+        camera.warpAlpha += (0 - camera.warpAlpha) * 0.15;
       }
 
-      if (foundHoverIdx !== activeHoverIdx) {
-        if (foundHoverIdx !== -1) {
+      // Camera coordinates smooth interpolation
+      camera.x += (camera.targetX - camera.x) * 0.08;
+      camera.y += (camera.targetY - camera.y) * 0.08;
+      camera.zoom += (camera.targetZoom - camera.zoom) * 0.08;
+
+      // Projection parameters helper
+      const project = (sysX: number, sysY: number) => {
+        return {
+          x: width / 2 + (sysX - camera.x) * camera.zoom,
+          y: height / 2 + (sysY - camera.y) * camera.zoom,
+        };
+      };
+
+      // 1. Draw Space Warp Streaks in warp mode
+      if (camera.warpAlpha > 0.01) {
+        ctx.strokeStyle = `rgba(6, 182, 212, ${camera.warpAlpha * 0.35})`;
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#06b6d4';
+        
+        warpStars.forEach(star => {
+          star.z -= 28; // move star closer
+          if (star.z <= 0) {
+            star.z = 1000;
+            star.x = (Math.random() - 0.5) * 1200;
+            star.y = (Math.random() - 0.5) * 1000;
+          }
+          
+          // Project star coordinates
+          const k = 450 / star.z;
+          const px = star.x * k + width / 2;
+          const py = star.y * k + height / 2;
+          
+          const prevK = 450 / (star.z + star.length * 2.5);
+          const ppx = star.x * prevK + width / 2;
+          const ppy = star.y * prevK + height / 2;
+          
+          ctx.beginPath();
+          ctx.moveTo(ppx, ppy);
+          ctx.lineTo(px, py);
+          ctx.stroke();
+        });
+        ctx.shadowBlur = 0;
+      }
+
+      // 2. Draw Guides / Orbital Ellipses for Category Planets
+      if (cfgShowOrbits) {
+        categoryPlanetConfigs.forEach((pCfg) => {
+          if (!cfgFilters.includes(pCfg.name)) return;
+          ctx.save();
+          ctx.translate(width / 2 - camera.x * camera.zoom, height / 2 - camera.y * camera.zoom);
+          ctx.strokeStyle = `${pCfg.color}15`; // faint guide line
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, pCfg.rx * camera.zoom, pCfg.ry * camera.zoom, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      // 3. Compute System elements coordinates
+      const renderingList: any[] = [];
+
+      // A. The Sun (Central Star Vijayapandian T)
+      const sunProj = project(0, 0);
+      renderingList.push({
+        type: 'sun',
+        id: 'sun-core',
+        name: 'Vijayapandian T',
+        sysX: 0,
+        sysY: 0,
+        x: sunProj.x,
+        y: sunProj.y,
+        size: 45 * camera.zoom,
+      });
+
+      // B. Category Planets & nested satellites
+      categoryPlanetConfigs.forEach((pCfg, idx) => {
+        if (!cfgFilters.includes(pCfg.name)) return;
+        const currentAngle = planetAngles[idx] + galaxyBaseAngle + orbitRotationOffset;
+        const planetSysX = pCfg.rx * Math.cos(currentAngle);
+        const planetSysY = pCfg.ry * Math.sin(currentAngle);
+        const planetProj = project(planetSysX, planetSysY);
+
+        const zScale = (Math.sin(currentAngle) + 2.5) / 3.5; // Depth perspective size scaling (0.4 to 1.0)
+        const planetSize = 24 * zScale * camera.zoom;
+
+        renderingList.push({
+          type: 'planet',
+          id: pCfg.name,
+          name: pCfg.name,
+          config: pCfg,
+          sysX: planetSysX,
+          sysY: planetSysY,
+          x: planetProj.x,
+          y: planetProj.y,
+          size: planetSize,
+          zScale,
+        });
+
+        // Satellites/Moons Orbiting this planet
+        const moons = planetMoons[idx];
+        moons.forEach((m) => {
+          const moonAngle = m.angle + (time * 0.001 * m.speed * cfgSpeed);
+          const moonSysX = planetSysX + m.relRx * Math.cos(moonAngle);
+          const moonSysY = planetSysY + m.relRy * Math.sin(moonAngle);
+          const moonProj = project(moonSysX, moonSysY);
+          const moonSize = 9 * zScale * camera.zoom;
+
+          renderingList.push({
+            type: 'moon',
+            id: m.id,
+            name: m.name,
+            achievement: m.achievement,
+            color: pCfg.color,
+            sysX: moonSysX,
+            sysY: moonSysY,
+            x: moonProj.x,
+            y: moonProj.y,
+            size: moonSize,
+            parentPlanet: pCfg.name,
+          });
+
+          // Spawn trailing dust sparks for moons
+          if (frame % 3 === 0 && cfgSpeed > 0 && Math.random() > 0.4) {
+            moonTailParticles.push({
+              x: moonProj.x + (Math.random() - 0.5) * 3,
+              y: moonProj.y + (Math.random() - 0.5) * 3,
+              color: pCfg.color,
+              alpha: 0.95,
+            });
+          }
+        });
+      });
+
+      // 4. Render Moon Tail particles
+      ctx.save();
+      for (let i = moonTailParticles.length - 1; i >= 0; i--) {
+        const p = moonTailParticles[i];
+        p.alpha -= 0.035;
+        if (p.alpha <= 0) {
+          moonTailParticles.splice(i, 1);
+          continue;
+        }
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1.0;
+      ctx.shadowBlur = 0;
+
+      // 5. Draw Timeline Constellation Path (Connect moons chronologically)
+      if (cfgShowConstellations && chronologicalAchievements.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)'; // glowing purple
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#a855f7';
+        ctx.beginPath();
+
+        let drewFirst = false;
+        chronologicalAchievements.forEach((ach) => {
+          // Find projected coordinates for this achievement moon
+          const activeMoonNode = renderingList.find(node => node.type === 'moon' && node.id === ach.id);
+          if (activeMoonNode) {
+            if (!drewFirst) {
+              ctx.moveTo(activeMoonNode.x, activeMoonNode.y);
+              drewFirst = true;
+            } else {
+              ctx.lineTo(activeMoonNode.x, activeMoonNode.y);
+            }
+          }
+        });
+        ctx.stroke();
+
+        // Draw small numeric order nodes along the constellation path
+        let constIndex = 1;
+        chronologicalAchievements.forEach((ach) => {
+          const activeMoonNode = renderingList.find(node => node.type === 'moon' && node.id === ach.id);
+          if (activeMoonNode) {
+            ctx.fillStyle = '#a855f7';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(activeMoonNode.x, activeMoonNode.y, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '9px monospace';
+            ctx.fillText(constIndex.toString(), activeMoonNode.x + 8, activeMoonNode.y + 3);
+            constIndex++;
+          }
+        });
+        ctx.restore();
+        ctx.shadowBlur = 0;
+      }
+
+      // 6. Interactive Ray Vector Beam on Mouse Hover
+      let currentHoverId: string | null = null;
+      let currentHoverType: 'planet' | 'moon' | 'sun' | null = null;
+      
+      renderingList.forEach((obj) => {
+        const dx = mousePos.x - obj.x;
+        const dy = mousePos.y - obj.y;
+        const distance = Math.hypot(dx, dy);
+        
+        // Custom hit box sizes
+        const hitBox = obj.type === 'sun' ? obj.size + 10 : obj.size + 14;
+        if (distance < hitBox) {
+          currentHoverId = obj.id;
+          currentHoverType = obj.type;
+        }
+      });
+
+      // Handle hover trigger sound
+      if (currentHoverId !== hoveredObjectId) {
+        if (currentHoverId) {
           playHover();
-          setHoveredNode(nodes[foundHoverIdx]);
+          // Find matching detail info
+          if (currentHoverType === 'planet') {
+            const planet = categoryPlanetConfigs.find(c => c.name === currentHoverId);
+            if (planet) {
+              setHoveredNode({
+                name: planet.name,
+                stat: `${getStats(planet.name)} Achievements`,
+                description: planet.description,
+                color: planet.color,
+                glowColor: planet.glowColor,
+              });
+            }
+          } else if (currentHoverType === 'moon') {
+            const targetMoon = renderingList.find(n => n.id === currentHoverId);
+            if (targetMoon) {
+              setHoveredNode({
+                name: targetMoon.name,
+                stat: `Platform: ${targetMoon.achievement.issuer}`,
+                description: targetMoon.achievement.description,
+                color: targetMoon.color,
+                glowColor: `rgba(6, 182, 212, 0.4)`,
+              });
+            }
+          } else if (currentHoverType === 'sun') {
+            setHoveredNode({
+              name: 'VIJAYAPANDIAN T',
+              stat: 'CENTRAL OPERATOR STAR',
+              description: 'Operator of the Achievement Universe. Drag to rotate the orbital coordinates or use autopilot tour.',
+              color: '#06b6d4',
+              glowColor: 'rgba(6, 182, 212, 0.4)',
+            });
+          }
         } else {
           setHoveredNode(null);
         }
-        activeHoverIdx = foundHoverIdx;
+        hoveredObjectId = currentHoverId;
+        hoveredObjectType = currentHoverType;
       }
 
-      animationId = requestAnimationFrame(render2DUniverse);
+      // Draw pointer guides / coordinate beams from Sun to hovered item
+      if (hoveredObjectId && hoveredObjectType === 'moon') {
+        const activeMoon = renderingList.find(n => n.id === hoveredObjectId);
+        if (activeMoon) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(sunProj.x, sunProj.y);
+          ctx.lineTo(activeMoon.x, activeMoon.y);
+          ctx.stroke();
+
+          // Text coordinates HUD
+          ctx.fillStyle = '#06b6d4';
+          ctx.font = '8px monospace';
+          ctx.fillText(`VECTOR_TGT: [${(activeMoon.sysX).toFixed(0)}, ${(activeMoon.sysY).toFixed(0)}]`, activeMoon.x + 12, activeMoon.y - 12);
+          ctx.restore();
+        }
+      }
+
+      // 7. Depth Occlusion Sorting (2.5D projection layering)
+      // Sort elements by Y coordinate so background items are drawn first
+      renderingList.sort((a, b) => a.y - b.y);
+
+      // 8. Render All sorted System Objects
+      renderingList.forEach((obj) => {
+        ctx.save();
+
+        if (obj.type === 'sun') {
+          // RENDER THE SUN CORE
+          drawSunCoronalFlares(obj.x, obj.y, obj.size, time);
+
+          // Outer dashboard orbit circles
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([6, 6]);
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.size + 15, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Glowing sun shell
+          const sunGlow = ctx.createRadialGradient(obj.x, obj.y, 0, obj.x, obj.y, obj.size * 1.3);
+          sunGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+          sunGlow.addColorStop(0.3, 'rgba(6, 182, 212, 0.85)');
+          sunGlow.addColorStop(0.75, 'rgba(139, 92, 246, 0.35)');
+          sunGlow.addColorStop(1, 'rgba(0,0,0,0)');
+
+          ctx.fillStyle = sunGlow;
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.size * 1.3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Avatar Image inside the core sun
+          if (avatarImageRef.current) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(obj.x, obj.y, obj.size * 0.75, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(
+              avatarImageRef.current,
+              obj.x - obj.size * 0.75,
+              obj.y - obj.size * 0.75,
+              obj.size * 1.5,
+              obj.size * 1.5
+            );
+            ctx.restore();
+            
+            // Outer metal frame border
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(obj.x, obj.y, obj.size * 0.75, 0, Math.PI * 2);
+            ctx.stroke();
+          } else {
+            // Draw placeholder symbol
+            ctx.fillStyle = '#030014';
+            ctx.font = `bold ${Math.floor(22 * camera.zoom)}px Space Grotesk`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('VJ', obj.x, obj.y);
+          }
+
+        } else if (obj.type === 'planet') {
+          // RENDER A CATEGORY PLANET
+          const isHovered = obj.id === hoveredObjectId;
+          ctx.shadowBlur = isHovered ? 24 : 10;
+          ctx.shadowColor = obj.config.color;
+
+          // Planetary Core
+          const planetGrad = ctx.createRadialGradient(
+            obj.x - obj.size * 0.35, obj.y - obj.size * 0.35, 0,
+            obj.x, obj.y, obj.size
+          );
+          planetGrad.addColorStop(0, '#ffffff');
+          planetGrad.addColorStop(0.3, obj.config.color);
+          planetGrad.addColorStop(1, '#05030f');
+
+          ctx.fillStyle = planetGrad;
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Planet guide rings
+          ctx.shadowBlur = 0; // reset
+          ctx.strokeStyle = `${obj.config.color}35`;
+          ctx.lineWidth = 1;
+          ctx.save();
+          ctx.translate(obj.x, obj.y);
+          ctx.rotate(0.35); // tilt rings
+          ctx.beginPath();
+          ctx.ellipse(0, 0, obj.size * 1.7, obj.size * 0.45, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+
+          // Label text for planet names
+          ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(226, 232, 240, 0.75)';
+          ctx.font = `${isHovered ? 'bold' : 'normal'} ${Math.floor(10.5 * camera.zoom)}px Space Grotesk`;
+          ctx.textAlign = 'center';
+          ctx.fillText(obj.name, obj.x, obj.y + obj.size + 14);
+
+        } else if (obj.type === 'moon') {
+          // RENDER AN INDIVIDUAL ACHIEVEMENT MOON
+          const isHovered = obj.id === hoveredObjectId;
+          const currentSelected = controlsRef.current.selectedAchievement;
+          const currentTourActive = controlsRef.current.tourMode && chronologicalAchievements[controlsRef.current.tourIndex];
+          const isSelected = (currentSelected?.id === obj.id) || (currentTourActive && currentTourActive.id === obj.id);
+          
+          ctx.shadowBlur = (isHovered || isSelected) ? 22 : 8;
+          ctx.shadowColor = obj.color;
+
+          // Glowing satellite core
+          const moonGrad = ctx.createRadialGradient(
+            obj.x - obj.size * 0.3, obj.y - obj.size * 0.3, 0,
+            obj.x, obj.y, obj.size
+          );
+          moonGrad.addColorStop(0, '#ffffff');
+          moonGrad.addColorStop(0.4, obj.color);
+          moonGrad.addColorStop(1, '#0a0914');
+
+          ctx.fillStyle = moonGrad;
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Outer selection cursor ring
+          if (isSelected) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(obj.x, obj.y, obj.size + 4, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      });
+
+      // Save to latest rendering list for event handlers
+      latestRenderingList = renderingList;
+
+      // Request next frame
+      frame++;
+      animationId = requestAnimationFrame(animateUniverse);
     };
 
+    let frame = 0;
+    animateUniverse();
+
+    // Mouse handlers on canvas
     const handleCanvasMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mousePos.x = e.clientX - rect.left;
       mousePos.y = e.clientY - rect.top;
+
+      if (isDragging) {
+        const deltaX = e.clientX - dragStartX;
+        orbitRotationOffset += deltaX * 0.003;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+      }
     };
 
     const handleCanvasMouseDown = (e: MouseEvent) => {
       isDragging = true;
-      startMouseX = e.clientX;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
     };
 
     const handleCanvasMouseUp = (e: MouseEvent) => {
       isDragging = false;
-      // If not dragging far, count as click
-      const distance = Math.abs(e.clientX - startMouseX);
-      if (distance < 5 && activeHoverIdx !== -1) {
+      const distance = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+      
+      // Treat as click if not dragged far
+      if (distance < 5 && hoveredObjectId) {
         playClick();
-        onSelectCategory(nodes[activeHoverIdx].name);
+        if (hoveredObjectType === 'planet') {
+          onSelectCategory(hoveredObjectId);
+        } else if (hoveredObjectType === 'moon') {
+          const clickedNode = latestRenderingList.find((n: any) => n.id === hoveredObjectId);
+          if (clickedNode) {
+            setSelectedAchievement(clickedNode.achievement);
+          }
+        }
       }
-    };
-
-    const handleCanvasMouseMoveDrag = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const deltaX = e.clientX - startMouseX;
-      targetAngleOffset += deltaX * 0.005;
-      startMouseX = e.clientX;
     };
 
     canvas.addEventListener('mousemove', handleCanvasMouseMove);
     canvas.addEventListener('mousedown', handleCanvasMouseDown);
     window.addEventListener('mouseup', handleCanvasMouseUp);
-    canvas.addEventListener('mousemove', handleCanvasMouseMoveDrag);
-
-    render2DUniverse();
 
     return () => {
       window.removeEventListener('resize', handleResize);
       if (canvas) {
         canvas.removeEventListener('mousemove', handleCanvasMouseMove);
         canvas.removeEventListener('mousedown', handleCanvasMouseDown);
-        canvas.removeEventListener('mousemove', handleCanvasMouseMoveDrag);
       }
       window.removeEventListener('mouseup', handleCanvasMouseUp);
       cancelAnimationFrame(animationId);
     };
-  }, [onSelectCategory]);
+  }, [chronologicalAchievements, onSelectCategory]);
+
+  // Autopilot navigation trigger handlers
+  const handleTourPrev = () => {
+    playClick();
+    setTourIndex(prev => (prev === 0 ? chronologicalAchievements.length - 1 : prev - 1));
+  };
+
+  const handleTourNext = () => {
+    playClick();
+    setTourIndex(prev => (prev === chronologicalAchievements.length - 1 ? 0 : prev + 1));
+  };
+
+  const toggleTourMode = () => {
+    playClick();
+    const nextState = !tourMode;
+    setTourMode(nextState);
+    if (nextState) {
+      setTourIndex(0);
+      setSelectedAchievement(chronologicalAchievements[0]);
+    } else {
+      setSelectedAchievement(null);
+    }
+  };
+
+  const activeAchievementInTour = chronologicalAchievements[tourIndex];
+
+  // Helper properties for selected moon diagnostics panel
+  const activeBadge = selectedAchievement || (tourMode ? activeAchievementInTour : null);
+
+  const getRarityConfig = (rarity: string | undefined) => {
+    switch (rarity?.toLowerCase()) {
+      case 'legendary': return { label: 'LEGENDARY', color: 'text-amber-400', meterColor: 'bg-amber-400' };
+      case 'epic': return { label: 'EPIC', color: 'text-fuchsia-400', meterColor: 'bg-fuchsia-400' };
+      case 'rare': return { label: 'RARE', color: 'text-cyan-400', meterColor: 'bg-cyan-400' };
+      default: return { label: 'COMMON', color: 'text-slate-400', meterColor: 'bg-slate-400' };
+    }
+  };
 
   return (
     <div className="relative w-full min-h-[calc(100vh-140px)] flex flex-col justify-between overflow-hidden" ref={containerRef}>
-      {/* Visual background decorations */}
-      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(8,3,24,0.3)_0%,transparent_70%] pointer-events-none" />
+      {/* Background radial cosmic shadows */}
+      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(8,3,24,0.25)_0%,transparent_75%] pointer-events-none" />
 
-      {/* Futuristic Header Telemetry */}
-      <div className="w-full max-w-7xl mx-auto px-6 pt-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 z-10 select-none">
+      {/* Galaxy header HUD panel */}
+      <div className="w-full max-w-7xl mx-auto px-6 pt-6 flex flex-col lg:flex-row justify-between items-start gap-6 z-10 select-none">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col border-l border-cyan-500/30 pl-4 py-1"
+          className="flex flex-col border-l border-cyan-500/30 pl-4 py-1 lg:mt-4"
         >
-          <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase">Telemetry System Active</span>
+          <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase">Cosmic Telemetry Node Online</span>
           <h1 className="text-3xl font-extrabold tracking-tight text-white font-sans mt-1">
-            ACHIEVEMENT <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">UNIVERSE</span>
+            ACHIEVEMENT <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">GALAXY</span>
           </h1>
           <p className="text-xs text-slate-400 max-w-sm mt-1">
-            An orbital mapping of certifications, placements, badges, and learning milestones. Drag to rotate system core.
+            Explore my certifications, internships, and badges orbiting dynamically. Drag to manually rotate coordinates.
           </p>
         </motion.div>
 
-        {/* Active Certificates Count HUD Card */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex flex-col border border-cyan-500/20 bg-slate-950/65 backdrop-blur-md rounded-xl px-4 py-2 font-mono text-[11px] text-cyan-400 text-glow-cyan shadow-[0_0_15px_rgba(6,182,212,0.05)]"
-        >
-          ACTIVE CERTIFICATES: {achievementsData.length}
-        </motion.div>
-
-        {/* Operator Profile Telemetry HUD Card */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="w-full lg:w-[480px] flex flex-col border border-cyan-500/20 bg-slate-950/65 backdrop-blur-md rounded-xl px-5 py-3.5 font-mono text-[11px] text-slate-300 gap-2.5 tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.06)] relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-            {/* Avatar Frame with Cyber Effects */}
-            <div className="relative flex-shrink-0 group">
-              {/* Outer cyber rotating dashed ring */}
-              <div className="absolute inset-0 -m-1.5 rounded-full border border-dashed border-cyan-500/40 animate-[spin_30s_linear_infinite] pointer-events-none" />
-              {/* Pulsing neon outer circle */}
-              <div className="absolute inset-0 -m-1 rounded-full border border-cyan-400/20 group-hover:border-cyan-400/40 transition-colors pointer-events-none" />
-              {/* Image Container with Scanline effect */}
-              <div className="relative w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-cyan-400/30 bg-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.2)] select-none">
-                <img 
-                  src="/avatar.jpg" 
-                  alt="Operator Avatar" 
-                  className="w-full h-full object-cover scale-105 transition-transform duration-500 group-hover:scale-115"
-                />
-              </div>
-            </div>
-
-            {/* Operator Telemetry Information */}
-            <div className="flex-1 w-full flex flex-col gap-1.5 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-1 border-b border-white/10 pb-1.5">
-                <span className="text-cyan-400 font-bold text-glow-cyan text-[12px]">OPERATOR: VIJAYAPANDIAN T</span>
-                <span className="text-purple-400 text-[10px]">B.E. CSE (PRE-FINAL)</span>
-              </div>
-              <div className="text-slate-200 text-[10px] sm:text-[11px]">INSTITUTION: SRM Easwari Engineering College</div>
-              <div className="text-slate-300 text-[10px] sm:text-[11px]">LOC: Chennai, Tamil Nadu</div>
-            </div>
-          </div>
-
-          {/* Contact Details Grid */}
-          <div className="flex flex-col md:flex-row justify-between gap-x-6 gap-y-0.5 border-t border-white/10 pt-2 text-slate-400 text-[10px]">
-            <span>EMAIL: vijayapandian112007@gmail.com</span>
-            <span>PH: +91 8610554060</span>
-          </div>
-
-          {/* Coding & Social Profiles Grid */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2 border-t border-white/10">
-            <span className="text-[10px] text-cyan-500/80 mr-1 select-none font-bold">PROFILES:</span>
-            {profiles.map((profile) => (
-              <a
-                key={profile.name}
-                href={profile.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => playClick()}
-                title={profile.name}
-                className={`w-[26px] h-[26px] rounded-md flex items-center justify-center border border-white/10 bg-white/5 text-slate-400 transition-all duration-200 cursor-pointer ${profile.colorClass}`}
-              >
-                {profile.icon}
-              </a>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Main Galaxy Arena */}
-      <div className="flex-1 w-full relative flex items-center justify-center my-4 min-h-[450px]">
-        {/* Hover card floating HUD */}
-        {hoveredNode && (
+        {/* Operator Profile Telemetry HUD Card & Autopilot controls */}
+        <div className="flex flex-col items-stretch lg:items-end gap-3 w-full lg:w-auto">
+          {/* Operator Profile Telemetry HUD Card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="absolute top-4 md:top-8 w-11/12 max-w-md bg-glass border border-cyan-500/30 p-4 rounded-xl shadow-2xl z-20 pointer-events-none"
-            style={{
-              boxShadow: `0 0 25px ${hoveredNode.glowColor}, inset 0 0 10px rgba(6, 182, 212, 0.05)`,
-            }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="w-full lg:w-[480px] flex flex-col border border-cyan-500/20 bg-slate-950/65 backdrop-blur-md rounded-xl px-5 py-3.5 font-mono text-[11px] text-slate-300 gap-2.5 tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.06)] relative overflow-hidden"
           >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center border text-white"
-                style={{ borderColor: hoveredNode.color, backgroundColor: `${hoveredNode.color}20` }}
-              >
-                <hoveredNode.icon size={20} />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
+            
+            <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+              {/* Avatar Frame with Cyber Effects */}
+              <div className="relative flex-shrink-0 group">
+                {/* Outer cyber rotating dashed ring */}
+                <div className="absolute inset-0 -m-1.5 rounded-full border border-dashed border-cyan-500/40 animate-[spin_30s_linear_infinite] pointer-events-none" />
+                {/* Pulsing neon outer circle */}
+                <div className="absolute inset-0 -m-1 rounded-full border border-cyan-400/20 group-hover:border-cyan-400/40 transition-colors pointer-events-none" />
+                {/* Image Container with Scanline effect */}
+                <div className="relative w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-cyan-400/30 bg-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.2)] select-none">
+                  <img 
+                    src="/avatar.jpg" 
+                    alt="Operator Avatar" 
+                    className="w-full h-full object-cover scale-105 transition-transform duration-500 group-hover:scale-115"
+                  />
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-white uppercase tracking-wider">{hoveredNode.name}</h3>
-                <p className="text-[11px] text-cyan-400 font-mono">{hoveredNode.stat}</p>
+
+              {/* Operator Telemetry Information */}
+              <div className="flex-1 w-full flex flex-col gap-1.5 text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-1 border-b border-white/10 pb-1.5">
+                  <span className="text-cyan-400 font-bold text-glow-cyan text-[12px]">OPERATOR: VIJAYAPANDIAN T</span>
+                  <span className="text-purple-400 text-[10px]">B.E. CSE (PRE-FINAL)</span>
+                </div>
+                <div className="text-slate-200 text-[10px] sm:text-[11px]">INSTITUTION: SRM Easwari Engineering College</div>
+                <div className="flex justify-between gap-4 text-slate-300">
+                  <span>LOC: Chennai, Tamil Nadu</span>
+                </div>
               </div>
             </div>
-            <p className="text-xs text-slate-300 mt-2 font-sans leading-relaxed">{hoveredNode.description}</p>
-            <div className="mt-3 pt-2 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500 font-mono">
-              <span>ORBITAL ANGLE: {(hoveredNode.angle * 57.29).toFixed(0)}°</span>
-              <span className="text-cyan-400 animate-pulse">CLICK TO DECRYPT VAULT</span>
+
+            {/* Contact Details Grid */}
+            <div className="flex flex-col md:flex-row justify-between gap-x-6 gap-y-0.5 border-t border-white/10 pt-2 text-slate-400 text-[10px]">
+              <span>EMAIL: vijayapandian112007@gmail.com</span>
+              <span>PH: +91 8610554060</span>
+            </div>
+
+            {/* Coding & Social Profiles Grid */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2 border-t border-white/10">
+              <span className="text-[10px] text-cyan-500/80 mr-1 select-none font-bold">PROFILES:</span>
+              {profiles.map((profile) => (
+                <a
+                  key={profile.name}
+                  href={profile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => playClick()}
+                  title={profile.name}
+                  className={`w-[26px] h-[26px] rounded-md flex items-center justify-center border border-white/10 bg-white/5 text-slate-400 transition-all duration-200 cursor-pointer ${profile.colorClass}`}
+                >
+                  {profile.icon}
+                </a>
+              ))}
             </div>
           </motion.div>
-        )}
 
-        {/* 2D Canvas Fallback / Native render */}
-        <div className="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing">
-          <canvas ref={canvas2DRef} className="w-full h-full block" />
+          {/* Autopilot tour control center */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex self-stretch lg:self-end items-center justify-between lg:justify-start gap-3 bg-slate-950/65 border border-white/5 p-2 rounded-xl backdrop-blur-md"
+          >
+            <button
+              onClick={toggleTourMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs uppercase tracking-wider rounded-lg transition-all border cursor-pointer ${
+                tourMode
+                  ? 'bg-purple-950 border-purple-500/40 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.25)] font-bold'
+                  : 'border-white/5 text-slate-400 hover:text-white'
+              }`}
+            >
+              {tourMode ? <Pause size={12} /> : <Play size={12} />}
+              {tourMode ? 'AUTOPILOT: ACTIVE' : 'AUTOPILOT: TOUR'}
+            </button>
+
+            {tourMode && (
+              <div className="flex items-center gap-1.5 border-l border-white/10 pl-3">
+                <button
+                  onClick={handleTourPrev}
+                  className="p-1 rounded bg-white/5 border border-white/5 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <ArrowLeft size={11} />
+                </button>
+                <span className="text-[10px] font-mono text-cyan-400 min-w-[50px] text-center">
+                  {tourIndex + 1} / {chronologicalAchievements.length}
+                </span>
+                <button
+                  onClick={handleTourNext}
+                  className="p-1 rounded bg-white/5 border border-white/5 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <ArrowRight size={11} />
+                </button>
+              </div>
+            )}
+          </motion.div>
         </div>
       </div>
 
-      {/* Categories Fast Travel Grid */}
-      <div className="w-full bg-black/40 border-t border-white/5 backdrop-blur-md py-4 z-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 md:grid-cols-6 gap-3">
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <motion.button
-                key={cat.name}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  playClick();
-                  onSelectCategory(cat.name);
-                }}
-                className="flex flex-col items-center justify-center p-3 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 hover:border-cyan-500/20 transition-all text-center group cursor-pointer"
-              >
-                <div
-                  className="w-8 h-8 rounded-md flex items-center justify-center mb-1.5 transition-transform group-hover:scale-110 text-white"
-                  style={{ backgroundColor: `${cat.color}20`, border: `1px solid ${cat.color}40` }}
-                >
-                  <Icon size={16} style={{ color: cat.color }} />
+      {/* Main Galaxy Interactive Stage */}
+      <div className="flex-1 w-full relative flex items-center justify-between my-4 min-h-[460px] max-h-[640px]">
+        {/* Left Floating Info Overlay */}
+        <div className="absolute left-6 top-4 z-20 pointer-events-none select-none max-w-xs space-y-4">
+          {hoveredNode && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-glass border border-cyan-500/20 p-4 rounded-xl shadow-2xl relative overflow-hidden"
+              style={{
+                boxShadow: `0 0 25px ${hoveredNode.glowColor}, inset 0 0 10px rgba(6, 182, 212, 0.05)`,
+              }}
+            >
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-cyan-400/40" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">{hoveredNode.name}</h3>
+              <p className="text-[10px] text-cyan-400 font-mono mt-0.5">{hoveredNode.stat}</p>
+              <p className="text-[11px] text-slate-300 mt-2 font-sans leading-relaxed">{hoveredNode.description}</p>
+              <div className="mt-2.5 pt-1.5 border-t border-white/5 text-[9px] text-slate-500 font-mono flex justify-between">
+                <span>ORBIT_LOCKED</span>
+                <span className="text-cyan-400 animate-pulse">CLICK NODE TO DECRYPT</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* 2D Canvas Fallback / Galaxy Engine */}
+        <div className="flex-1 h-full absolute inset-0 cursor-grab active:cursor-grabbing z-0">
+          <canvas ref={canvas2DRef} className="w-full h-full block" />
+        </div>
+
+        {/* Right Floating Diagnostics HUD Sidebar (Holographic details) */}
+        <AnimatePresence>
+          {activeBadge && (
+            <motion.div
+              initial={{ opacity: 0, x: 50, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 50, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 20 }}
+              className="absolute right-6 top-4 bottom-4 w-[340px] bg-slate-950/80 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-5 z-20 flex flex-col justify-between shadow-[0_0_40px_rgba(6,182,212,0.1)] overflow-y-auto"
+            >
+              {/* Scan HUD Header */}
+              <div>
+                <div className="flex justify-between items-center border-b border-white/10 pb-3 mb-4 font-mono text-[9px] text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Cpu size={12} className="text-cyan-400 animate-spin-slow" /> TELEMETRY_DECK
+                  </span>
+                  <span className="text-cyan-400 font-bold">SECURE_SYNC</span>
                 </div>
-                <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition-colors uppercase tracking-wider">
-                  {cat.name}
-                </span>
-                <span className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                  {getStats(cat.name)} entries
-                </span>
-              </motion.button>
-            );
-          })}
+
+                <div className="space-y-4">
+                  <div>
+                    <span className="px-2 py-0.5 rounded border border-cyan-500/25 bg-cyan-950/20 text-cyan-400 font-mono text-[9px] uppercase tracking-wider">
+                      {activeBadge.category}
+                    </span>
+                    <h3 className="text-base font-extrabold text-white mt-1.5 uppercase font-mono tracking-wide">
+                      {activeBadge.title}
+                    </h3>
+                    <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                      ISSUED BY: {activeBadge.issuer}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-sans border-l-2 border-cyan-500/30 pl-3 py-1 bg-white/2 rounded-r-md">
+                    {activeBadge.description}
+                  </p>
+
+                  {/* Skills radar stats */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block">Competency Vectors</span>
+                    <div className="space-y-1.5 font-mono text-[10px]">
+                      {activeBadge.skills.slice(0, 3).map((skill, idx) => (
+                        <div key={skill} className="space-y-0.5">
+                          <div className="flex justify-between text-slate-400">
+                            <span className="truncate max-w-[70%]">{skill}</span>
+                            <span className="text-cyan-400">Lvl {10 - idx * 2}</span>
+                          </div>
+                          <div className="w-full bg-slate-950 rounded-full h-[3px] border border-white/5">
+                            <div className="h-full bg-cyan-400" style={{ width: `${100 - idx * 20}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="mt-6 pt-4 border-t border-white/10 space-y-2">
+                <div className="flex justify-between items-center text-[9px] font-mono text-slate-500 mb-2">
+                  <span>DATE: {activeBadge.issueDate}</span>
+                  {activeBadge.rarity && (
+                    <span className={`font-bold ${getRarityConfig(activeBadge.rarity).color}`}>
+                      {getRarityConfig(activeBadge.rarity).label}
+                    </span>
+                  )}
+                </div>
+
+                {activeBadge.image && (
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={activeBadge.image}
+                    download={`${activeBadge.title.toLowerCase().replace(/\s+/g, '_')}_certificate`}
+                    className="w-full flex items-center justify-center gap-1.5 bg-slate-900 border border-cyan-500/25 text-cyan-400 font-mono text-[10px] font-bold py-2 px-3 rounded-lg hover:bg-cyan-950/20 transition-all cursor-pointer"
+                  >
+                    <Download size={11} /> DOWNLOAD ORIGINAL SCAN
+                  </motion.a>
+                )}
+
+                {activeBadge.url ? (
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={activeBadge.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-mono text-[10px] font-bold py-2 px-3 rounded-lg shadow-neon-cyan transition-all border border-cyan-400/25 cursor-pointer"
+                  >
+                    <ExternalLink size={11} /> VERIFY CREDENTIAL
+                  </motion.a>
+                ) : (
+                  <div className="w-full text-center text-slate-600 font-mono text-[9px] border border-white/5 bg-slate-900/40 py-2 rounded-lg">
+                    VERIFIED LOCAL SYNC ONLY
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Bottom HUD: Space Console Controls */}
+      <div className="w-full bg-black/45 border-t border-white/5 backdrop-blur-md py-4 z-10 select-none">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Left Side: System settings sliders */}
+          <div className="flex flex-wrap items-center gap-6 text-[10px] font-mono text-slate-400">
+            {/* Speed slider */}
+            <div className="flex items-center gap-2">
+              <Compass size={13} className="text-cyan-400" />
+              <span>ORBIT_GRAVITY:</span>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.1"
+                value={orbitalSpeedScale}
+                onChange={(e) => setOrbitalSpeedScale(parseFloat(e.target.value))}
+                className="w-20 md:w-28 h-1 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              />
+              <span className="text-cyan-400 font-bold min-w-[24px]">{orbitalSpeedScale.toFixed(1)}x</span>
+            </div>
+
+            {/* Zoom slider */}
+            <div className="flex items-center gap-2">
+              <ZoomIn size={13} className="text-cyan-400" />
+              <span>SYSTEM_ZOOM:</span>
+              <input
+                type="range"
+                min="0.5"
+                max="2.2"
+                step="0.05"
+                value={zoomLevel}
+                onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+                className="w-20 md:w-28 h-1 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              />
+              <span className="text-cyan-400 font-bold min-w-[24px]">{zoomLevel.toFixed(2)}x</span>
+            </div>
+          </div>
+
+          {/* Center Side: Quick Guide toggles */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => { playClick(); setShowOrbits(!showOrbits); }}
+              className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono uppercase cursor-pointer transition-all ${
+                showOrbits ? 'border-cyan-500/25 bg-cyan-950/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.15)]' : 'border-slate-800 bg-slate-950/40 text-slate-500'
+              }`}
+            >
+              SHOW_ORBITS
+            </button>
+            <button
+              onClick={() => { playClick(); setShowConstellations(!showConstellations); }}
+              className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono uppercase cursor-pointer transition-all ${
+                showConstellations ? 'border-purple-500/25 bg-purple-950/20 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)]' : 'border-slate-800 bg-slate-950/40 text-slate-500'
+              }`}
+            >
+              TIMELINE_CONSTELLATIONS
+            </button>
+          </div>
+
+          {/* Right Side: Fast travel category filters */}
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-mono text-slate-500 uppercase font-bold mr-1">Sector Filters:</span>
+            <div className="flex gap-1">
+              {categoryPlanetConfigs.map(cfg => {
+                const isActive = activePlanetFilters.includes(cfg.name);
+                return (
+                  <button
+                    key={cfg.name}
+                    title={`Filter ${cfg.name} sector`}
+                    onClick={() => {
+                      playClick();
+                      setActivePlanetFilters(prev => 
+                        prev.includes(cfg.name) ? prev.filter(c => c !== cfg.name) : [...prev, cfg.name]
+                      );
+                    }}
+                    className={`w-6 h-6 rounded-md flex items-center justify-center border transition-all text-xs cursor-pointer ${
+                      isActive 
+                        ? 'bg-slate-900 border-cyan-500/25 text-white' 
+                        : 'bg-slate-950 border-white/5 text-slate-600'
+                    }`}
+                  >
+                    {cfg.emoji}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
