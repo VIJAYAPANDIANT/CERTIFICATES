@@ -458,13 +458,12 @@ export const Universe: React.FC<UniverseProps> = ({ onSelectCategory }) => {
               {/* Pulsing neon outer circle */}
               <div className="absolute inset-0 -m-1 rounded-full border border-cyan-400/20 group-hover:border-cyan-400/40 transition-colors pointer-events-none" />
               {/* Image Container with Scanline effect */}
-              <div className="relative w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-cyan-400/30 bg-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.2)] hologram-scan select-none">
+              <div className="relative w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-cyan-400/30 bg-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.2)] select-none">
                 <img 
                   src="/avatar.jpg" 
                   alt="Operator Avatar" 
                   className="w-full h-full object-cover scale-105 transition-transform duration-500 group-hover:scale-115"
                 />
-                <div className="absolute inset-0 bg-cyan-900/10 pointer-events-none mix-blend-overlay" />
               </div>
             </div>
 
