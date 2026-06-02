@@ -105,45 +105,6 @@ Below is the directory tree mapping the telemetry systems of the workspace:
 
 ---
 
-## 📝 Updating Certificates & Achievements
-
-To update or add new certificates and achievements to your console, edit the core records data file: [achievementsData.ts](file:///c:/Certificate/src/data/achievementsData.ts).
-
-### 1. Structure of an Achievement Node
-Each entry in the `achievementsData` array is defined by the `Achievement` TypeScript interface. Here is the blueprint:
-
-```typescript
-export interface Achievement {
-  id: string;          // Unique ID (e.g., 'internship-google-cloud')
-  title: string;       // Name of the achievement or role
-  issuer: string;      // Organization that issued the credential
-  category:            // Must be one of the categories below:
-    | 'Internships' | 'Hackathons' | 'Courses' 
-    | 'Workshops' | 'Competitions' | 'Badges';
-  subCategory: string; // Detail classification (e.g., 'Online Internships')
-  issueDate: string;   // Date formatted as 'YYYY-MM-DD'
-  credentialId?: string; // (Optional) Verification ID
-  skills: string[];    // Array of skills gained, e.g., ['React', 'Node.js']
-  description: string; // Brief summary of work or accomplishments
-  url?: string;        // (Optional) Verification link
-  image?: string;      // (Optional) Path to certificate image (placed in /public/certificates/)
-  
-  // Category Specific Fields:
-  place?: string;      // (Competitions/Hackathons) e.g., '1st Place', 'Winner', 'Participation'
-  projectTitle?: string; // (Hackathons) Project name
-  projectUrl?: string;   // (Hackathons) Repository link of build
-  teamSize?: number;     // (Hackathons) Size of team
-  rarity?: 'common' | 'rare' | 'epic' | 'legendary'; // (Badges) Tier level
-}
-```
-
-### 2. Steps to Add a New Certificate
-1. **Prepare the certificate scan**: Save the certificate image inside the `/public/certificates/` directory.
-2. **Open the data file**: Open [achievementsData.ts](file:///c:/Certificate/src/data/achievementsData.ts).
-3. **Append the record**: Append a new JSON-like object matching the interface above to the `achievementsData` array.
-
----
-
 ## 📡 Local Deployment
 
 To run this telemetry HUD console on your local coordinates:
@@ -170,3 +131,4 @@ To run this telemetry HUD console on your local coordinates:
     npm run build
     ```
     Compiles the production-ready code bundles into the `dist` directory.
+
