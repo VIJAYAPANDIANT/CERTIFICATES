@@ -249,7 +249,7 @@ export const CommandCenter: React.FC = () => {
                 <span className="text-right text-slate-200">SRM Easwari Engineering College</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500">LOC:</span>
+                <span className="text-slate-500">LOCATION:</span>
                 <span className="text-slate-200">Chennai, Tamil Nadu</span>
               </div>
               <div className="flex justify-between items-center">
